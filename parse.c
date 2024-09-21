@@ -21,6 +21,15 @@ print_ParseStatus(
 
 	case PS_unexpected_line_start:
 		printf("Line %i: Unexpected line start\n", line);
+		break;
+
+	case PS_invalid_number:
+		printf("Line %i: Invalid number\n", line);
+		break;
+
+	case PS_invalid_operator:
+		printf("Line %i: Invalid operator\n", line);
+		break;
 	}
 }
 
@@ -48,7 +57,8 @@ text_to_lines(
 char
 *read_number(
 	char *line,
-	struct Value *no)
+	struct Value *no,
+	enum ParseStatus *ps)
 {
 	char *begin;
 	char tmp;
@@ -65,45 +75,11 @@ char
 	errno = 0;
 	no->content.i = strtol(begin, NULL, 10);
 	if (errno) {
-		fprintf(stderr, "Could not read number\n");
+		*ps = PS_invalid_number;
 	}
 
 	*line = tmp;
 
-	return line;
-}
-
-char
-*read_operator(
-	char *line,
-	enum InstructionType *it)
-{
-	int loop;
-
-	for (loop = 1; loop; line++) {
-		switch (*line) {
-		case ' ':
-		case '\0':
-			loop = 0;
-			break;
-		case '+':
-			*it = IT_add;
-			loop = 0;
-			break;
-		case '-':
-			*it = IT_sub;
-			loop = 0;
-			break;
-		case '*':
-			*it = IT_mul;
-			loop = 0;
-			break;
-		case '/':
-			*it = IT_div;
-			loop = 0;
-			break;
-		}
-	}
 	return line;
 }
 
@@ -122,10 +98,13 @@ parse_line(
 	char *line,
 	struct Scope *scope)
 {
+	enum ParseStatus ps;
+
 	line = read_whitespace(line);
 
 	if (*line >= '0' && *line <= '9') {
-		line = parse_math(scope, line);
+		line = parse_math(scope, line, &ps);
+		return ps;
 	} else if ((*line >= 'A' && *line <= 'Z') ||
 	           (*line >= 'a' && *line <= 'z')) {
 		// TODO line = read_symbol(line);
@@ -140,24 +119,53 @@ parse_line(
 char
 *parse_math(
 	struct Scope *scope,
-	char *line)
+	char *line,
+	enum ParseStatus *ps)
 {
 	struct Instruction instr;
 	struct Value       val;
 
-	line = read_number(line, &val);
+	line = read_number(line, &val, ps);
+	if (*ps)
+		return line;
 	Scope_add_tmpval(scope, val);
 
 	instr.type = IT_express;
 	line = read_whitespace(line);
-	line = read_operator(line, &instr.type);
+
+	switch (*line) {
+	case '\0':
+		break;
+	case '+':
+		instr.type = IT_add;
+		break;
+	case '-':
+		instr.type = IT_sub;
+		break;
+	case '*':
+		instr.type = IT_mul;
+		break;
+	case '/':
+		instr.type = IT_div;
+		break;
+	default:
+		*ps = PS_invalid_operator;
+		break;
+	}
+	line++;
+
+	if (*ps)
+		return line;
 
 	if (instr.type == IT_express) {
 		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
 		Scope_add_instruction(scope, instr);
 	} else {
 		line = read_whitespace(line);
-		line = read_number(line, &val);
+		line = read_number(line, &val, ps);
+		if (*ps) {
+			return line;
+		}
 		Scope_add_tmpval(scope, val);
 
 		val.type = VT_int;

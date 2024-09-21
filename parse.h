@@ -10,7 +10,9 @@
 
 enum ParseStatus {
 	PS_ok,
-	PS_unexpected_line_start
+	PS_unexpected_line_start,
+	PS_invalid_number,
+	PS_invalid_operator
 };
 
 void
@@ -28,12 +30,14 @@ text_to_lines(
 char
 *read_number(
 	char *line,
-	struct Value *no);
+	struct Value *no,
+	enum ParseStatus *ps);
 
 char
 *read_operator(
 	char *line,
-	enum InstructionType *it);
+	enum InstructionType *it,
+	enum ParseStatus *ps);
 
 char
 *read_whitespace(
@@ -47,7 +51,8 @@ parse_line(
 char
 *parse_math(
 	struct Scope *scope,
-	char *line);
+	char *line,
+	enum ParseStatus *ps);
 
 struct
 Scope text_to_scope(

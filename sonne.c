@@ -31,6 +31,22 @@ main()
 
 	free(text); // hack cleanup
 
+	// statistics for me
+	int i;
+
+	printf("# instructions\n");
+	for (i = 0; i < mainS.n_instrs; i++)
+		printf("- type: %i, vals: %i\n",
+			mainS.instrs[i].type, mainS.instrs[i].n_vals);
+
+	printf("\n# tmpvals\n");
+	for (i = 0; i < mainS.n_tmpvals; i++)
+		printf("- type: %i, int: %i\n",
+			mainS.tmpvals[i].type, mainS.tmpvals[i].content.i);
+
+	printf("\n# total\ninstrs: %i\ntmpvals: %i\n",
+		mainS.n_instrs, mainS.n_tmpvals);
+
 
 	return 0;
 }

@@ -1,5 +1,7 @@
 # v0.2
 
+- [ ] add y coord to parse error print
+
 - [ ] cli executor
 
 - [ ] other math operators
@@ -11,6 +13,10 @@
 - [x] fix reading numbers
 
 - [x] add parsing basic math
+
+- [x] add parsing errors for invalid numbers and operators
+
+- [ ] fix read_number fully giving up on invalid numbers
 
 - [ ] read symbol see TODO
 
