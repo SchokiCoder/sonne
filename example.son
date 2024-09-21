@@ -1,0 +1,20 @@
+I_INIT_VAL = 0
+
+foo(iInitVal) {
+	i = iInitVal
+
+	i = i + 3
+
+	print("Counting " + str(i) + " currently")
+}
+
+foo(I_INIT_VAL)
+
+# possible parsing paths
+
+# value
+# var
+# var, =, value OR var (+ OR - OR / OR * OR %, value OR var)
+
+
+# symbol, (, param_names..., ), {
