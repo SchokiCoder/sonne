@@ -51,19 +51,22 @@ char
 	struct Value *no)
 {
 	char *begin;
-	char *end;
+	char tmp;
 
 	no->type = VT_int;
 
 	begin = line;
 	for (; *line != '\0' || (*line >= '0' && *line <= '9'); line++) {}
-	end = line;
+	tmp = *line;
+	*line = '\0';
 
 	errno = 0;
-	no->content.i = strtol(begin, &end, 10);
-	if (!errno) {
+	no->content.i = strtol(begin, NULL, 10);
+	if (errno) {
 		fprintf(stderr, "Could not read number\n");
 	}
+
+	*line = tmp;
 
 	return line;
 }
@@ -73,16 +76,10 @@ parse_line(
 	char *line,
 	struct Scope *scope)
 {
-	struct Instruction instr;
-	struct Value val;
-
 	for (; *line != '\0'; line++) {
 		if (*line >= '0' && *line <= '9') {
-			line = read_number(line, &val);
-			Scope_add_tmpval(scope, val);
-			instr.type = IT_express;
-			Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
-			Scope_add_instruction(scope, instr);
+			line = linestart_number(scope, line);
+
 		} else if ((*line >= 'A' && *line <= 'Z') ||
 		           (*line >= 'a' && *line <= 'z')) {
 			// TODO line = read_symbol(line);
@@ -92,6 +89,53 @@ parse_line(
 	}
 
 	return PS_ok;
+}
+
+char
+*linestart_number(
+	struct Scope *scope,
+	char *line)
+{
+	struct Instruction instr;
+	struct Value val;
+
+	line = read_number(line, &val);
+	Scope_add_tmpval(scope, val);
+
+	//if (no_following operators) {
+		instr.type = IT_express;
+		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
+		Scope_add_instruction(scope, instr);
+	/*} else {
+		switch (*line) {
+		case '+':
+			ittype = IT_add;
+			break;
+
+		case '-':
+			ittype = IT_sub;
+			break;
+
+		case '*':
+			ittype = IT_mul;
+			break;
+
+		case '/':
+			ittype = IT_div;
+			break;
+		}
+
+		instr.type = ittype;
+		Scope_add_tmpval(scope, val);
+		read_number(...);
+		Scope_add_tmpval(scope, val);
+
+		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -2]);
+		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
+		Scope_add_instruction(scope, instr);
+	}*/
+
+	return line;
 }
 
 struct Scope

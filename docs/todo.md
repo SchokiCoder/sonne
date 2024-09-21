@@ -8,7 +8,7 @@
 
 - [x] add tmp vals to scope
 
-- [ ] fix not being able to read numbers
+- [x] fix reading numbers
 
 - [ ] read symbol see TODO
 

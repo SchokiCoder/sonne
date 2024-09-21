@@ -35,6 +35,11 @@ parse_line(
 	char *line,
 	struct Scope *scope);
 
+char
+*linestart_number(
+	struct Scope *scope,
+	char *line);
+
 struct
 Scope text_to_scope(
 	char *text,
