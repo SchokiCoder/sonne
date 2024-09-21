@@ -8,7 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-void print_ParseStatus(const int line, const enum ParseStatus ps)
+#include "lang_def.h"
+
+void
+print_ParseStatus(
+	const int line,
+	const enum ParseStatus ps)
 {
 	switch (ps) {
 	case PS_ok:
@@ -19,7 +24,12 @@ void print_ParseStatus(const int line, const enum ParseStatus ps)
 	}
 }
 
-void text_to_lines(char *text, const int text_len, char **lines, int *n_lines)
+void
+text_to_lines(
+	char *text,
+	const int text_len,
+	char **lines,
+	int *n_lines)
 {
 	int i;
 
@@ -35,7 +45,10 @@ void text_to_lines(char *text, const int text_len, char **lines, int *n_lines)
 	}
 }
 
-char *read_number(char *line, struct Value *no)
+char
+*read_number(
+	char *line,
+	struct Value *no)
 {
 	char *begin;
 	char *end;
@@ -55,7 +68,10 @@ char *read_number(char *line, struct Value *no)
 	return line;
 }
 
-enum ParseStatus parse_line(char *line, struct Scope *scope)
+enum ParseStatus
+parse_line(
+	char *line,
+	struct Scope *scope)
 {
 	struct Instruction instr;
 	struct Value val;
@@ -63,12 +79,13 @@ enum ParseStatus parse_line(char *line, struct Scope *scope)
 	for (; *line != '\0'; line++) {
 		if (*line >= '0' && *line <= '9') {
 			line = read_number(line, &val);
+			Scope_add_tmpval(scope, val);
 			instr.type = IT_express;
-			Instruction_add_Value(&instr, val);
-			Scope_add_Instruction(scope, instr);
+			Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
+			Scope_add_instruction(scope, instr);
 		} else if ((*line >= 'A' && *line <= 'Z') ||
 		           (*line >= 'a' && *line <= 'z')) {
-			//line = read_symbol(line);
+			// TODO line = read_symbol(line);
 		} else {
 			return PS_unexpected_line_start;
 		}
@@ -77,7 +94,10 @@ enum ParseStatus parse_line(char *line, struct Scope *scope)
 	return PS_ok;
 }
 
-struct Scope text_to_scope(char *text, const int text_len)
+struct Scope
+text_to_scope(
+	char *text,
+	const int text_len)
 {
 	int               i;
 	char             *lines[FILE_MAX_LINES];
@@ -85,12 +105,9 @@ struct Scope text_to_scope(char *text, const int text_len)
 	enum ParseStatus  ps;
 	struct Scope      ret;
 
-	text_to_lines(text, text_len, lines, &n_lines);
+	ret = Scope_new("main", NULL);
 
-	strncpy(ret.name, "main", SCOPE_NAME_MAX_LEN);
-	ret.parent = NULL;
-	ret.n_instrs = 0;
-	ret.n_vars = 0;
+	text_to_lines(text, text_len, lines, &n_lines);
 
 	for (i = 0; i < n_lines; i++) {
 		ps = parse_line(lines[i], &ret);

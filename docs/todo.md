@@ -6,14 +6,18 @@
 
 # very bare basics v0.1
 
-- [ ] we need an array for tmp vals in the scope because of IT_express ?
-see dilemma of parse.c:67
+- [x] add tmp vals to scope
 
-- [ ] read symbol
+- [ ] fix not being able to read numbers
+
+- [ ] read symbol see TODO
+
+- [ ] add "-a" and "-v" flags
 
 - [ ] set version to v0.1
 once it fully parses the example:
 ```
+25
 i = 0
 i = i + 1
 ```

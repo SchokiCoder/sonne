@@ -4,11 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "lang_def.h"
 #include "parse.h"
 
-#define SCRIPT "i = 0\ni = i + 1"
+#define SCRIPT "25\ni = 0\ni = i + 1"
 
-int main()
+int
+main()
 {
 	struct Scope mainS;
 

@@ -6,6 +6,7 @@
 
 #define SCOPE_MAX_INSTRUCTIONS 2048
 #define SCOPE_MAX_VARIABLES 128
+#define SCOPE_MAX_TMPVALUES 128
 #define SCOPE_NAME_MAX_LEN 128
 #define VARIABLE_NAME_MAX_LEN 64
 
@@ -41,23 +42,35 @@ struct Instruction {
 };
 
 void
-Instruction_add_Value(
+Instruction_add_value(
 	struct Instruction *i,
 	struct Value *v);
 
 struct Scope {
-	int                 n_instrs;
-	struct Instruction  instrs[SCOPE_MAX_INSTRUCTIONS];
 	char                name[SCOPE_NAME_MAX_LEN];
 	struct Scope       *parent;
+	int                 n_instrs;
+	struct Instruction  instrs[SCOPE_MAX_INSTRUCTIONS];
 	int                 n_vars;
 	char                var_names[SCOPE_MAX_VARIABLES][VARIABLE_NAME_MAX_LEN];
 	struct Value        var_vals[SCOPE_MAX_VARIABLES];
+	int                 n_tmpvals;
+	struct Value        tmpvals[SCOPE_MAX_TMPVALUES];
 };
 
+struct Scope
+Scope_new(
+	char         *name,
+	struct Scope *parent);
+
 void
-Scope_add_Instruction(
+Scope_add_instruction(
 	struct Scope *s,
 	struct Instruction i);
+
+void
+Scope_add_tmpval(
+	struct Scope *s,
+	struct Value v);
 
 #endif /* _LANG_DEF_H */
