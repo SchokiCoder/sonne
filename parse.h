@@ -30,13 +30,22 @@ char
 	char *line,
 	struct Value *no);
 
+char
+*read_operator(
+	char *line,
+	enum InstructionType *it);
+
+char
+*read_whitespace(
+	char *line);
+
 enum ParseStatus
 parse_line(
 	char *line,
 	struct Scope *scope);
 
 char
-*linestart_number(
+*parse_math(
 	struct Scope *scope,
 	char *line);
 

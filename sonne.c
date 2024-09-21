@@ -8,7 +8,7 @@
 #include "lang_def.h"
 #include "parse.h"
 
-#define SCRIPT "25\ni = 0\ni = i + 1"
+#define SCRIPT "25\n400 + 20\ni = 0\ni = i + 1"
 
 int
 main()

@@ -10,6 +10,8 @@
 
 - [x] fix reading numbers
 
+- [x] add parsing basic math
+
 - [ ] read symbol see TODO
 
 - [ ] add "-a" and "-v" flags
@@ -18,6 +20,7 @@
 once it fully parses the example:
 ```
 25
+400 + 20
 i = 0
 i = i + 1
 ```

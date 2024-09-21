@@ -56,7 +56,9 @@ char
 	no->type = VT_int;
 
 	begin = line;
-	for (; *line != '\0' || (*line >= '0' && *line <= '9'); line++) {}
+	while (*line != '\0' && *line != ' ')
+		line++;
+
 	tmp = *line;
 	*line = '\0';
 
@@ -71,69 +73,102 @@ char
 	return line;
 }
 
+char
+*read_operator(
+	char *line,
+	enum InstructionType *it)
+{
+	int loop;
+
+	for (loop = 1; loop; line++) {
+		switch (*line) {
+		case ' ':
+		case '\0':
+			loop = 0;
+			break;
+		case '+':
+			*it = IT_add;
+			loop = 0;
+			break;
+		case '-':
+			*it = IT_sub;
+			loop = 0;
+			break;
+		case '*':
+			*it = IT_mul;
+			loop = 0;
+			break;
+		case '/':
+			*it = IT_div;
+			loop = 0;
+			break;
+		}
+	}
+	return line;
+}
+
+char
+*read_whitespace(
+	char *line)
+{
+	while (*line == ' ') {
+		line++;
+	}
+	return line;
+}
+
 enum ParseStatus
 parse_line(
 	char *line,
 	struct Scope *scope)
 {
-	for (; *line != '\0'; line++) {
-		if (*line >= '0' && *line <= '9') {
-			line = linestart_number(scope, line);
+	line = read_whitespace(line);
 
-		} else if ((*line >= 'A' && *line <= 'Z') ||
-		           (*line >= 'a' && *line <= 'z')) {
-			// TODO line = read_symbol(line);
-		} else {
-			return PS_unexpected_line_start;
-		}
+	if (*line >= '0' && *line <= '9') {
+		line = parse_math(scope, line);
+	} else if ((*line >= 'A' && *line <= 'Z') ||
+	           (*line >= 'a' && *line <= 'z')) {
+		// TODO line = read_symbol(line);
+		printf("vars not yet implemented (%s)\n", line);
+	} else {
+		return PS_unexpected_line_start;
 	}
 
 	return PS_ok;
 }
 
 char
-*linestart_number(
+*parse_math(
 	struct Scope *scope,
 	char *line)
 {
 	struct Instruction instr;
-	struct Value val;
+	struct Value       val;
 
 	line = read_number(line, &val);
 	Scope_add_tmpval(scope, val);
 
-	//if (no_following operators) {
-		instr.type = IT_express;
+	instr.type = IT_express;
+	line = read_whitespace(line);
+	line = read_operator(line, &instr.type);
+
+	if (instr.type == IT_express) {
 		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
 		Scope_add_instruction(scope, instr);
-	/*} else {
-		switch (*line) {
-		case '+':
-			ittype = IT_add;
-			break;
-
-		case '-':
-			ittype = IT_sub;
-			break;
-
-		case '*':
-			ittype = IT_mul;
-			break;
-
-		case '/':
-			ittype = IT_div;
-			break;
-		}
-
-		instr.type = ittype;
-		Scope_add_tmpval(scope, val);
-		read_number(...);
+	} else {
+		line = read_whitespace(line);
+		line = read_number(line, &val);
 		Scope_add_tmpval(scope, val);
 
+		val.type = VT_int;
+		val.content.i = 0;
+		Scope_add_tmpval(scope, val);
+
+		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -3]);
 		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -2]);
 		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
 		Scope_add_instruction(scope, instr);
-	}*/
+	}
 
 	return line;
 }
