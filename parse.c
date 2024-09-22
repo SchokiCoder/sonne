@@ -105,6 +105,7 @@ char
 	char            *line,
 	struct Scope    *scope,
 	enum SymbolType *st,
+	char            **symbol_end,
 	int             *symbol_idx,
 	int             *symbol_found)
 {
@@ -116,6 +117,9 @@ char
 	       *line == '_') {
 		line++;
 	}
+
+	if (symbol_end != NULL)
+		*symbol_end = line;
 
 	line = read_whitespace(line);
 
@@ -189,6 +193,7 @@ char
 		line = read_symbol(line,
 		                   scope,
 		                   &st,
+		                   NULL,
 		                   &symbol_idx,
 		                   &symbol_found);
 
@@ -267,9 +272,13 @@ char
 	char                tmp;
 	int                 symbol_idx;
 
-	line = read_symbol(line, scope, &st, &symbol_idx, &symbol_found);
-	symbol_end = line;
-
+	line = read_symbol(line,
+	                   scope,
+	                   &st,
+	                   &symbol_end,
+	                   &symbol_idx,
+	                   &symbol_found);
+printf("%s, %i, %c\n", line, symbol_found, *symbol_end);
 	line = read_whitespace(line);
 	tmp = *line;
 	*symbol_end = '\0';
