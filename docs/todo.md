@@ -8,9 +8,11 @@ calls a scope_from_text(), which must end when finding a '}'
 
 - [ ] add y coord to parse error print
 
-- [ ] cli executor
+- [ ] add using filenames via args to interpret files
 
-- [ ] other math operators
+- [ ] add actual execution
+
+- [ ] add cli interactive mode
 
 # very bare basics v0.1
 
@@ -26,10 +28,10 @@ calls a scope_from_text(), which must end when finding a '}'
 
 - [x] add parse_symbol
 
+- [x] add modulus operator to parse_math
+
 - [ ] make instruction struct opaque
 and add functions for constructing all instruction types
-
-- [ ] add modulus operator to parse_math
 
 - [ ] add "-a" and "-v" flags
 

@@ -234,6 +234,9 @@ char
 	case '/':
 		instr.type = IT_div;
 		break;
+	case '%':
+		instr.type = IT_modulus;
+		break;
 	default:
 		*ps = PS_invalid_operator;
 		break;
