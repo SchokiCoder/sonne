@@ -16,7 +16,7 @@
 
 - [x] add parsing errors for invalid numbers and operators
 
-- [ ] fix read_number fully giving up on invalid numbers
+- [x] fix read_number not catching invalid numbers
 
 - [ ] read symbol see TODO
 

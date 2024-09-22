@@ -66,8 +66,14 @@ char
 	no->type = VT_int;
 
 	begin = line;
-	while (*line != '\0' && *line != ' ')
-		line++;
+	while (*line != '\0' && *line != ' ') {
+		if (*line < '0' || *line > '9') {
+			*ps = PS_invalid_number;
+			return line;
+		} else {
+			line++;
+		}
+	}
 
 	tmp = *line;
 	*line = '\0';
