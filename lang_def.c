@@ -39,10 +39,37 @@ Scope_add_instruction(
 }
 
 void
+Scope_add_var(
+	struct Scope *s,
+	char *name)
+{
+	strncpy(s->var_names[s->n_vars], name, VARIABLE_NAME_MAX_LEN);
+	s->n_vars++;
+}
+
+void
 Scope_add_tmpval(
 	struct Scope *s,
 	struct Value v)
 {
 	s->tmpvals[s->n_tmpvals] = v;
 	s->n_tmpvals++;
+}
+
+int
+Scope_find_var(
+	struct Scope *s,
+	char *name,
+	int *idx)
+{
+	int i;
+
+	for (i = 0; i < s->n_vars; i++) {
+		if (strcmp(name, s->var_names[i]) == 0) {
+			*idx = i;
+			return 1;
+		}
+	}
+
+	return 0;
 }

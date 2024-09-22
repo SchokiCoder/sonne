@@ -12,7 +12,9 @@ enum ParseStatus {
 	PS_ok,
 	PS_unexpected_line_start,
 	PS_invalid_number,
-	PS_invalid_operator
+	PS_invalid_operator,
+	PS_unexptected_symbol_followup,
+	PS_variable_not_found
 };
 
 void
@@ -50,6 +52,12 @@ parse_line(
 
 char
 *parse_math(
+	struct Scope *scope,
+	char *line,
+	enum ParseStatus *ps);
+
+char
+*parse_symbol(
 	struct Scope *scope,
 	char *line,
 	enum ParseStatus *ps);

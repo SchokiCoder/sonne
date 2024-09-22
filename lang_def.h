@@ -69,8 +69,24 @@ Scope_add_instruction(
 	struct Instruction i);
 
 void
+Scope_add_var(
+	struct Scope *s,
+	char *name);
+
+void
 Scope_add_tmpval(
 	struct Scope *s,
 	struct Value v);
+
+/* s: Scope
+ * name: Name of variable
+ * idx: Saving index of variable in that scope to that pointer location
+ * Returns non zero if var is found.
+ */
+int
+Scope_find_var(
+	struct Scope *s,
+	char *name,
+	int *idx);
 
 #endif /* _LANG_DEF_H */

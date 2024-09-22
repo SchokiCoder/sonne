@@ -1,3 +1,9 @@
+# v0.3
+
+- [ ] add functions
+which upon finding the '{' in a `symbol() {`,
+calls a scope_from_text(), which must end when finding a '}'
+
 # v0.2
 
 - [ ] add y coord to parse error print
@@ -18,7 +24,10 @@
 
 - [x] fix read_number not catching invalid numbers
 
-- [ ] read symbol see TODO
+- [ ] add parse_symbol
+WIP: assignment and math still left to implement
+
+- [ ] add modulus operator to parse_math
 
 - [ ] add "-a" and "-v" flags
 

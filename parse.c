@@ -30,6 +30,16 @@ print_ParseStatus(
 	case PS_invalid_operator:
 		printf("Line %i: Invalid operator\n", line);
 		break;
+
+	case PS_unexptected_symbol_followup:
+		printf("Line %i: Expected function call, assignment, or math, "
+		       "after a given symbol\n",
+		       line);
+		break;
+
+	case PS_variable_not_found:
+		printf("Line %i: Unknown variable referenced\n", line);
+		break;
 	}
 }
 
@@ -113,8 +123,8 @@ parse_line(
 		return ps;
 	} else if ((*line >= 'A' && *line <= 'Z') ||
 	           (*line >= 'a' && *line <= 'z')) {
-		// TODO line = read_symbol(line);
-		printf("vars not yet implemented (%s)\n", line);
+		line = parse_symbol(scope, line, &ps);
+		return ps;
 	} else {
 		return PS_unexpected_line_start;
 	}
@@ -185,6 +195,91 @@ char
 	}
 
 	return line;
+}
+
+char
+*parse_symbol(
+	struct Scope *scope,
+	char *line,
+	enum ParseStatus *ps)
+{
+	enum SymbolType {
+		ST_none,
+		ST_var,
+		ST_func
+	};
+
+	struct Instruction  instr;
+	enum SymbolType     st;
+	char               *symbol = line;
+	char               *symbol_end = line;
+	char                tmp;
+	struct Value        val;
+	int                 var_idx;
+
+	while ((*line >= 'A' && *line <= 'Z') ||
+	       (*line >= 'a' && *line <= 'z') ||
+	       (*line >= '0' && *line <= '9') ||
+	       *line == '_') {
+		line++;
+	}
+	symbol_end = line;
+
+	line = read_whitespace(line);
+	tmp = *line;
+	*symbol_end = '\0';
+
+	if (Scope_find_var(scope, symbol, &var_idx) != 0) {
+		st = ST_var;
+	} /*else if (Scope_find_func() != 0) {
+		st = ST_func;
+	}*/ else {
+		st = ST_none;
+	}
+
+	switch (tmp) {
+	case '(':
+		printf("functions not yet implemented\n");
+		return line;
+		break;
+
+	case '=':
+		instr.type = IT_assign;
+
+		if (st == ST_none) {
+			 var_idx = scope->n_vars;
+			 Scope_add_var(scope, symbol);
+		}
+		break;
+
+	case '+':
+	case '-':
+	case '*':
+	case '/':
+	case '%':
+		if (st == ST_none) {
+			*ps = PS_variable_not_found;
+			return line;
+		}
+		instr.type = IT_express;
+		break;
+
+	case '\0':
+		if (st == ST_none) {
+			*ps = PS_variable_not_found;
+			return line;
+		}
+
+		instr.type = IT_express;
+		Instruction_add_value(&instr, &scope->var_vals[var_idx]);
+		Scope_add_instruction(scope, instr);
+		break;
+
+	default:
+		*ps = PS_unexptected_symbol_followup;
+		return line;
+		break;
+	}
 }
 
 struct Scope
