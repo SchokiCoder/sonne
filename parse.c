@@ -119,7 +119,7 @@ parse_line(
 	line = read_whitespace(line);
 
 	if (*line >= '0' && *line <= '9') {
-		line = parse_math(scope, line, &ps);
+		line = parse_math(scope, line, &ps, &scope->expression);
 		return ps;
 	} else if ((*line >= 'A' && *line <= 'Z') ||
 	           (*line >= 'a' && *line <= 'z')) {
@@ -136,7 +136,8 @@ char
 *parse_math(
 	struct Scope *scope,
 	char *line,
-	enum ParseStatus *ps)
+	enum ParseStatus *ps,
+	struct Value *assign_target)
 {
 	struct Instruction instr;
 	struct Value       val;
@@ -146,7 +147,7 @@ char
 		return line;
 	Scope_add_tmpval(scope, val);
 
-	instr.type = IT_express;
+	instr.type = IT_assign;
 	line = read_whitespace(line);
 
 	switch (*line) {
@@ -173,7 +174,8 @@ char
 	if (*ps)
 		return line;
 
-	if (instr.type == IT_express) {
+	if (instr.type == IT_assign) {
+		Instruction_add_value(&instr, assign_target);
 		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
 		Scope_add_instruction(scope, instr);
 	} else {
@@ -184,13 +186,9 @@ char
 		}
 		Scope_add_tmpval(scope, val);
 
-		val.type = VT_int;
-		val.content.i = 0;
-		Scope_add_tmpval(scope, val);
-
-		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -3]);
 		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -2]);
 		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
+		Instruction_add_value(&instr, assign_target);
 		Scope_add_instruction(scope, instr);
 	}
 
@@ -261,7 +259,7 @@ char
 			*ps = PS_variable_not_found;
 			return line;
 		}
-		instr.type = IT_express;
+		instr.type = IT_assign;
 		break;
 
 	case '\0':
@@ -270,7 +268,8 @@ char
 			return line;
 		}
 
-		instr.type = IT_express;
+		instr.type = IT_assign;
+		Instruction_add_value(&instr, &scope->expression);
 		Instruction_add_value(&instr, &scope->var_vals[var_idx]);
 		Scope_add_instruction(scope, instr);
 		break;

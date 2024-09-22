@@ -27,6 +27,9 @@ calls a scope_from_text(), which must end when finding a '}'
 - [ ] add parse_symbol
 WIP: assignment and math still left to implement
 
+- [ ] make instruction struct opaque
+and add functions for constructing all instruction types
+
 - [ ] add modulus operator to parse_math
 
 - [ ] add "-a" and "-v" flags
@@ -37,5 +40,6 @@ once it fully parses the example:
 25
 400 + 20
 i = 0
+i + 20
 i = i + 1
 ```

@@ -54,7 +54,8 @@ char
 *parse_math(
 	struct Scope *scope,
 	char *line,
-	enum ParseStatus *ps);
+	enum ParseStatus *ps,
+	struct Value *assign_target);
 
 char
 *parse_symbol(

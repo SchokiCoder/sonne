@@ -26,7 +26,6 @@ struct Value {
 };
 
 enum InstructionType {
-	IT_express,
 	IT_assign,
 	IT_add,
 	IT_sub,
@@ -56,6 +55,7 @@ struct Scope {
 	struct Value        var_vals[SCOPE_MAX_VARIABLES];
 	int                 n_tmpvals;
 	struct Value        tmpvals[SCOPE_MAX_TMPVALUES];
+	struct Value        expression;
 };
 
 struct Scope
