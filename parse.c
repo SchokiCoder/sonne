@@ -32,7 +32,8 @@ print_ParseStatus(
 		break;
 
 	case PS_unexptected_symbol_followup:
-		printf("Line %i: Expected function call, assignment, or math, "
+		printf("Line %i: Expected function call, assignment, math, "
+		       "or end of line, "
 		       "after a given symbol\n",
 		       line);
 		break;
@@ -100,6 +101,36 @@ char
 }
 
 char
+*read_symbol(
+	char            *line,
+	struct Scope    *scope,
+	enum SymbolType *st,
+	int             *symbol_idx,
+	int             *symbol_found)
+{
+	char *symbol = line;
+
+	while ((*line >= 'A' && *line <= 'Z') ||
+	       (*line >= 'a' && *line <= 'z') ||
+	       (*line >= '0' && *line <= '9') ||
+	       *line == '_') {
+		line++;
+	}
+
+	line = read_whitespace(line);
+
+	if (*line == '(') {
+		*st = ST_func;
+		// TODO *symbol_found = Scope_find_func(scope, symbol, symbol_idx);
+	} else {
+		*st = ST_var;
+		*symbol_found = Scope_find_var(scope, symbol, symbol_idx);
+	}
+
+	return line;
+}
+
+char
 *read_whitespace(
 	char *line)
 {
@@ -139,13 +170,39 @@ char
 	enum ParseStatus *ps,
 	struct Value *assign_target)
 {
-	struct Instruction instr;
-	struct Value       val;
+	struct Value        *first;
+	struct Value        *second;
+	struct Instruction  instr;
+	enum SymbolType     st;
+	int                 symbol_idx;
+	int                 symbol_found;
+	struct Value        val;
 
-	line = read_number(line, &val, ps);
-	if (*ps)
-		return line;
-	Scope_add_tmpval(scope, val);
+	if (*line >= '0' && *line <= '9') {
+		line = read_number(line, &val, ps);
+		if (*ps) {
+			return line;
+		}
+		Scope_add_tmpval(scope, val);
+		first = &scope->tmpvals[scope->n_tmpvals -1];
+	} else {
+		line = read_symbol(line,
+		                   scope,
+		                   &st,
+		                   &symbol_idx,
+		                   &symbol_found);
+
+		switch (st) {
+		case ST_var:
+			first = &scope->var_vals[symbol_idx];
+			break;
+
+		case ST_func:
+			printf("functions not supported yet\n");
+			return line;
+			break;
+		}
+	}
 
 	instr.type = IT_assign;
 	line = read_whitespace(line);
@@ -176,7 +233,7 @@ char
 
 	if (instr.type == IT_assign) {
 		Instruction_add_value(&instr, assign_target);
-		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
+		Instruction_add_value(&instr, first);
 		Scope_add_instruction(scope, instr);
 	} else {
 		line = read_whitespace(line);
@@ -185,10 +242,11 @@ char
 			return line;
 		}
 		Scope_add_tmpval(scope, val);
+		second = &scope->tmpvals[scope->n_tmpvals -1];
 
-		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -2]);
-		Instruction_add_value(&instr, &scope->tmpvals[scope->n_tmpvals -1]);
 		Instruction_add_value(&instr, assign_target);
+		Instruction_add_value(&instr, first);
+		Instruction_add_value(&instr, second);
 		Scope_add_instruction(scope, instr);
 	}
 
@@ -201,39 +259,20 @@ char
 	char *line,
 	enum ParseStatus *ps)
 {
-	enum SymbolType {
-		ST_none,
-		ST_var,
-		ST_func
-	};
-
 	struct Instruction  instr;
 	enum SymbolType     st;
 	char               *symbol = line;
-	char               *symbol_end = line;
+	char               *symbol_end;
+	int                 symbol_found;
 	char                tmp;
-	struct Value        val;
-	int                 var_idx;
+	int                 symbol_idx;
 
-	while ((*line >= 'A' && *line <= 'Z') ||
-	       (*line >= 'a' && *line <= 'z') ||
-	       (*line >= '0' && *line <= '9') ||
-	       *line == '_') {
-		line++;
-	}
+	line = read_symbol(line, scope, &st, &symbol_idx, &symbol_found);
 	symbol_end = line;
 
 	line = read_whitespace(line);
 	tmp = *line;
 	*symbol_end = '\0';
-
-	if (Scope_find_var(scope, symbol, &var_idx) != 0) {
-		st = ST_var;
-	} /*else if (Scope_find_func() != 0) {
-		st = ST_func;
-	}*/ else {
-		st = ST_none;
-	}
 
 	switch (tmp) {
 	case '(':
@@ -244,10 +283,12 @@ char
 	case '=':
 		instr.type = IT_assign;
 
-		if (st == ST_none) {
-			 var_idx = scope->n_vars;
+		if (!symbol_found) {
+			 symbol_idx = scope->n_vars;
 			 Scope_add_var(scope, symbol);
 		}
+
+		line = parse_math(scope, line, ps, &scope->var_vals[symbol_idx]);
 		break;
 
 	case '+':
@@ -255,22 +296,25 @@ char
 	case '*':
 	case '/':
 	case '%':
-		if (st == ST_none) {
+		if (!symbol_found) {
 			*ps = PS_variable_not_found;
 			return line;
 		}
+
 		instr.type = IT_assign;
+		*line = tmp;
+		line = parse_math(scope, symbol, ps, &scope->var_vals[symbol_idx]);
 		break;
 
 	case '\0':
-		if (st == ST_none) {
+		if (!symbol_found) {
 			*ps = PS_variable_not_found;
 			return line;
 		}
 
 		instr.type = IT_assign;
 		Instruction_add_value(&instr, &scope->expression);
-		Instruction_add_value(&instr, &scope->var_vals[var_idx]);
+		Instruction_add_value(&instr, &scope->var_vals[symbol_idx]);
 		Scope_add_instruction(scope, instr);
 		break;
 
@@ -279,6 +323,8 @@ char
 		return line;
 		break;
 	}
+
+	return line;
 }
 
 struct Scope

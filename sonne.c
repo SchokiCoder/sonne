@@ -8,7 +8,11 @@
 #include "lang_def.h"
 #include "parse.h"
 
-#define SCRIPT "25\n400 + 20\ni = 0\ni + 20\ni = i + 1"
+#define SCRIPT "25\n"\
+               "400 + 20\n"\
+               "i = 0\n"\
+               "i + 20\n"\
+               "i = i + 1"
 
 int
 main()
@@ -38,6 +42,11 @@ main()
 	for (i = 0; i < mainS.n_instrs; i++)
 		printf("- type: %i, vals: %i\n",
 			mainS.instrs[i].type, mainS.instrs[i].n_vals);
+
+	printf("\n# variables\n");
+	for (i = 0; i < mainS.n_vars; i++)
+		printf("- name: \"%s\", type: %i, int: %i\n",
+			mainS.var_names[i], mainS.var_vals[i].type, mainS.var_vals[i].content.i);
 
 	printf("\n# tmpvals\n");
 	for (i = 0; i < mainS.n_tmpvals; i++)

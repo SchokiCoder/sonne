@@ -25,7 +25,7 @@ calls a scope_from_text(), which must end when finding a '}'
 - [x] fix read_number not catching invalid numbers
 
 - [ ] add parse_symbol
-WIP: assignment and math still left to implement
+WIP: fix vars falsely not being found
 
 - [ ] make instruction struct opaque
 and add functions for constructing all instruction types

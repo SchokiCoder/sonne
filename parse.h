@@ -17,6 +17,11 @@ enum ParseStatus {
 	PS_variable_not_found
 };
 
+enum SymbolType {
+	ST_var,
+	ST_func
+};
+
 void
 print_ParseStatus(
 	const int line,
@@ -40,6 +45,14 @@ char
 	char *line,
 	enum InstructionType *it,
 	enum ParseStatus *ps);
+
+char
+*read_symbol(
+	char            *line,
+	struct Scope    *scope,
+	enum SymbolType *st,
+	int             *symbol_idx,
+	int             *symbol_found);
 
 char
 *read_whitespace(
