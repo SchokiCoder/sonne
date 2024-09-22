@@ -278,7 +278,7 @@ char
 	                   &symbol_end,
 	                   &symbol_idx,
 	                   &symbol_found);
-printf("%s, %i, %c\n", line, symbol_found, *symbol_end);
+
 	line = read_whitespace(line);
 	tmp = *line;
 	*symbol_end = '\0';
@@ -297,6 +297,8 @@ printf("%s, %i, %c\n", line, symbol_found, *symbol_end);
 			 Scope_add_var(scope, symbol);
 		}
 
+		line++;
+		line = read_whitespace(line);
 		line = parse_math(scope, line, ps, &scope->var_vals[symbol_idx]);
 		break;
 
