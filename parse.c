@@ -105,11 +105,13 @@ char
 	char            *line,
 	struct Scope    *scope,
 	enum SymbolType *st,
-	char            **symbol_end,
+	char            **symbol_end_out,
 	int             *symbol_idx,
 	int             *symbol_found)
 {
 	char *symbol = line;
+	char *symbol_end;
+	char tmp;
 
 	while ((*line >= 'A' && *line <= 'Z') ||
 	       (*line >= 'a' && *line <= 'z') ||
@@ -118,8 +120,10 @@ char
 		line++;
 	}
 
-	if (symbol_end != NULL)
-		*symbol_end = line;
+	symbol_end = line;
+
+	if (symbol_end_out != NULL)
+		*symbol_end_out = symbol_end;
 
 	line = read_whitespace(line);
 
@@ -128,7 +132,10 @@ char
 		// TODO *symbol_found = Scope_find_func(scope, symbol, symbol_idx);
 	} else {
 		*st = ST_var;
+		tmp = *symbol_end;
+		*symbol_end = '\0';
 		*symbol_found = Scope_find_var(scope, symbol, symbol_idx);
+		*symbol_end = tmp;
 	}
 
 	return line;

@@ -51,7 +51,7 @@ char
 	char            *line,
 	struct Scope    *scope,
 	enum SymbolType *st,
-	char            **symbol_end,
+	char            **symbol_end_out,
 	int             *symbol_idx,
 	int             *symbol_found);
 
