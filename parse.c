@@ -13,6 +13,7 @@
 void
 print_ParseStatus(
 	const enum ParseStatus ps,
+	const char *filename,
 	const int line,
 	const int col)
 {
@@ -21,26 +22,27 @@ print_ParseStatus(
 		break;
 
 	case PS_unexpected_line_start:
-		printf("%i:%i: Unexpected line start\n", line, col);
+		printf("%s:%i:%i: Unexpected line start\n", filename, line, col);
 		break;
 
 	case PS_invalid_number:
-		printf("%i:%i: Invalid number\n", line, col);
+		printf("%s:%i:%i: Invalid number\n", filename, line, col);
 		break;
 
 	case PS_invalid_operator:
-		printf("%i:%i: Invalid operator\n", line, col);
+		printf("%s:%i:%i: Invalid operator\n", filename, line, col);
 		break;
 
 	case PS_unexptected_symbol_followup:
-		printf("%i:%i: Expected function call, assignment, math, "
+		printf("%s:%i:%i: Expected function call, assignment, math, "
 		       "or end of line, "
 		       "after a given symbol\n",
-		       line, col);
+		       filename, line, col);
 		break;
 
 	case PS_variable_not_found:
-		printf("%i:%i: Unknown variable referenced\n", line, col);
+		printf("%s:%i:%i: Unknown variable referenced\n",
+		       filename, line, col);
 		break;
 	}
 }
@@ -376,8 +378,9 @@ text_to_scope(
 	int               n_lines = 0;
 	enum ParseStatus  ps;
 	struct Scope      ret;
+	struct Scope     *root;
 
-	ret = Scope_new("main", NULL);
+	ret = Scope_new("main.son", NULL);
 
 	text_to_lines(text, text_len, lines, &n_lines);
 
@@ -386,15 +389,12 @@ text_to_scope(
 		line = lines[i];
 		line = parse_line(&ret, line, &ps);
 		if (ps != PS_ok) {
-			print_ParseStatus(ps, i + 1, line - lines[i]);
+			root = &ret;
+			while (root->parent != NULL) {
+				root = root->parent;
+			}
+			print_ParseStatus(ps, root->name, i + 1, line - lines[i]);
 		}
-
-		/*
-		functions ala pick your own adventure, all of which keep iterating on the char* of that line
-
-		parse_line -> what_is_first_thing - var > look for = -> etc
-		                                  - val > look for + -> etc
-		*/
 	}
 
 	return ret;

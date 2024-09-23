@@ -25,6 +25,7 @@ enum SymbolType {
 void
 print_ParseStatus(
 	const enum ParseStatus ps,
+	const char *filename,
 	const int line,
 	const int col);
 

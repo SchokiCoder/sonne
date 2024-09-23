@@ -7,8 +7,13 @@ calls a scope_from_text(), which must end when finding a '}'
 # 0.2.0
 
 - [x] add y coord to parse error print
+It was actually the x coord lol
 
-- [ ] add filename to parse error print
+- [x] add filename to parse status print
+
+- [ ] expression of unknown variable is not triggered?
+
+- [ ] `i + 20s` is ok?
 
 - [ ] add using filenames via args to interpret files
 
