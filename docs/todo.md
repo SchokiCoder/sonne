@@ -1,12 +1,14 @@
-# v0.3
+# 0.3.0
 
 - [ ] add functions
 which upon finding the '{' in a `symbol() {`,
 calls a scope_from_text(), which must end when finding a '}'
 
-# v0.2
+# 0.2.0
 
-- [ ] add y coord to parse error print
+- [x] add y coord to parse error print
+
+- [ ] add filename to parse error print
 
 - [ ] add using filenames via args to interpret files
 
@@ -14,7 +16,9 @@ calls a scope_from_text(), which must end when finding a '}'
 
 - [ ] add cli interactive mode
 
-# very bare basics v0.1
+-----
+
+# very bare basics 0.1.0
 
 - [x] add tmp vals to scope
 

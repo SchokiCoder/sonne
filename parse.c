@@ -12,34 +12,35 @@
 
 void
 print_ParseStatus(
+	const enum ParseStatus ps,
 	const int line,
-	const enum ParseStatus ps)
+	const int col)
 {
 	switch (ps) {
 	case PS_ok:
 		break;
 
 	case PS_unexpected_line_start:
-		printf("Line %i: Unexpected line start\n", line);
+		printf("%i:%i: Unexpected line start\n", line, col);
 		break;
 
 	case PS_invalid_number:
-		printf("Line %i: Invalid number\n", line);
+		printf("%i:%i: Invalid number\n", line, col);
 		break;
 
 	case PS_invalid_operator:
-		printf("Line %i: Invalid operator\n", line);
+		printf("%i:%i: Invalid operator\n", line, col);
 		break;
 
 	case PS_unexptected_symbol_followup:
-		printf("Line %i: Expected function call, assignment, math, "
+		printf("%i:%i: Expected function call, assignment, math, "
 		       "or end of line, "
 		       "after a given symbol\n",
-		       line);
+		       line, col);
 		break;
 
 	case PS_variable_not_found:
-		printf("Line %i: Unknown variable referenced\n", line);
+		printf("%i:%i: Unknown variable referenced\n", line, col);
 		break;
 	}
 }
@@ -151,27 +152,28 @@ char
 	return line;
 }
 
-enum ParseStatus
-parse_line(
+char
+*parse_line(
+	struct Scope *scope,
 	char *line,
-	struct Scope *scope)
+	enum ParseStatus *ps)
 {
-	enum ParseStatus ps;
-
 	line = read_whitespace(line);
 
 	if (*line >= '0' && *line <= '9') {
-		line = parse_math(scope, line, &ps, &scope->expression);
-		return ps;
+		line = parse_math(scope, line, ps, &scope->expression);
+		return line;
 	} else if ((*line >= 'A' && *line <= 'Z') ||
 	           (*line >= 'a' && *line <= 'z')) {
-		line = parse_symbol(scope, line, &ps);
-		return ps;
+		line = parse_symbol(scope, line, ps);
+		return line;
 	} else {
-		return PS_unexpected_line_start;
+		*ps = PS_unexpected_line_start;
+		return line;
 	}
 
-	return PS_ok;
+	*ps = PS_ok;
+	return line;
 }
 
 char
@@ -369,6 +371,7 @@ text_to_scope(
 	const int text_len)
 {
 	int               i;
+	char             *line;
 	char             *lines[FILE_MAX_LINES];
 	int               n_lines = 0;
 	enum ParseStatus  ps;
@@ -379,9 +382,11 @@ text_to_scope(
 	text_to_lines(text, text_len, lines, &n_lines);
 
 	for (i = 0; i < n_lines; i++) {
-		ps = parse_line(lines[i], &ret);
+		ps = PS_ok;
+		line = lines[i];
+		line = parse_line(&ret, line, &ps);
 		if (ps != PS_ok) {
-			print_ParseStatus(i + 1, ps);
+			print_ParseStatus(ps, i + 1, line - lines[i]);
 		}
 
 		/*

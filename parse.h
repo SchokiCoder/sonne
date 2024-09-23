@@ -24,8 +24,9 @@ enum SymbolType {
 
 void
 print_ParseStatus(
+	const enum ParseStatus ps,
 	const int line,
-	const enum ParseStatus ps);
+	const int col);
 
 void
 text_to_lines(
@@ -59,10 +60,11 @@ char
 *read_whitespace(
 	char *line);
 
-enum ParseStatus
-parse_line(
+char
+*parse_line(
+	struct Scope *scope,
 	char *line,
-	struct Scope *scope);
+	enum ParseStatus *ps);
 
 char
 *parse_math(
