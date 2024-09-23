@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: LGPL-2.1-or-later
+// SPDX-License-Identifier: LGPL-2.1-only
 // Copyright (C) 2024  Andy Frank Schoknecht
 
 #include <stdio.h>
@@ -15,9 +15,31 @@
                "i = i + 1"
 
 int
-main()
+main(
+	int argc,
+	char *argv[])
 {
+	int i;
 	struct Scope mainS;
+
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-v") == 0) {
+			printf("%s: version %s\n", APP_NAME, APP_VERSION);
+			return 0;
+		} else if (strcmp(argv[i], "-a") == 0) {
+			printf("The source code of \"%s\" v%s is available, "
+			       "licensed under the %s at:\n"
+			       "%s\n\n"
+			       "If you did not receive a copy of the license, "
+			       "see below:\n"
+			       "%s\n",
+			       APP_NAME, APP_VERSION,
+			       APP_LICENSE,
+			       APP_REPO,
+			       APP_LICENSE_URL);
+			return 0;
+		}
+	}
 
 
 	/* small hack for now, until we read actual source files */
@@ -36,8 +58,6 @@ main()
 	free(text); // hack cleanup
 
 	// statistics for me
-	int i;
-
 	printf("# instructions\n");
 	for (i = 0; i < mainS.n_instrs; i++)
 		printf("- type: %i, vals: %i\n",

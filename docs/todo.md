@@ -36,7 +36,8 @@ I don't yet make instruction struct opaque,
 because that means they must live in heap,
 and I'd have to see how to all of this efficiently.
 
-- [ ] add "-a" and "-v" flags
+- [x] add flags for about and version info
+Also change license to 2.1-only version of LGPL.
 
 - [ ] set version to v0.1
 once it fully parses the example:
