@@ -141,7 +141,9 @@ char
 {
 	line = read_whitespace(line);
 
-	if (*line >= '0' && *line <= '9') {
+	if (*line == '\n' || *line == '\0') {
+		return line;
+	}else if (*line >= '0' && *line <= '9') {
 		line = parse_math(scope, line, ps, &scope->expression);
 		return line;
 	} else if ((*line >= 'A' && *line <= 'Z') ||

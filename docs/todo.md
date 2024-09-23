@@ -17,6 +17,8 @@ Also improve parse end report statistics
 - [x] fix Scope_from_file being a return val
 This caused a variety of corruptions
 
+- [x] fix empty line being an "unexpected line start"
+
 - [ ] expression of unknown variable is not triggered?
 
 - [ ] `i + 20s` is ok?
