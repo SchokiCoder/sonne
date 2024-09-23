@@ -19,6 +19,9 @@ This caused a variety of corruptions
 
 - [x] fix empty line being an "unexpected line start"
 
+- [x] fix some wonkiness when last line is empty
+It partially kept the previous line, thus interpreting it again.
+
 - [ ] expression of unknown variable is not triggered?
 
 - [ ] `i + 20s` is ok?

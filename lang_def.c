@@ -209,6 +209,7 @@ Scope_from_file(
 
 	for (i = 0; reading; i++) {
 		errno = 0;
+		line[0] = '\0';
 		fgets(line, FILE_LINE_SIZE, file);
 		if (feof(file)) {
 			reading = 0;
