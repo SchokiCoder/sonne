@@ -18,6 +18,11 @@ enum ValueType {
 	VT_float
 };
 
+void
+ValueType_fprint(
+	enum ValueType vt,
+	FILE *file);
+
 union ValueContent {
 	int   i;
 	float f;
@@ -27,6 +32,11 @@ struct Value {
 	enum ValueType     type;
 	union ValueContent content;
 };
+
+void
+Value_fprint(
+	const struct Value *v,
+	FILE *f);
 
 enum InstructionType {
 	IT_mov,

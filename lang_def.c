@@ -30,6 +30,37 @@ Instruction_add_value(
 }
 
 void
+ValueType_fprint(
+	enum ValueType vt,
+	FILE *file)
+{
+	switch (vt) {
+	case VT_int:
+		fprintf(file, "int");
+		break;
+	case VT_float:
+		fprintf(file, "float");
+		break;
+	}
+}
+
+void
+Value_fprint(
+	const struct Value *v,
+	FILE *f)
+{
+	ValueType_fprint(v->type, f);
+	switch (v->type) {
+	case VT_int:
+		fprintf(f, "(%i)", v->content.i);
+		break;
+	case VT_float:
+		fprintf(f, "(%f)", v->content.f);
+		break;
+	}
+}
+
+void
 InstructionType_fprint(
 	enum InstructionType it,
 	FILE *file)
@@ -141,7 +172,8 @@ Instruction_fprint(
 
 	InstructionType_fprint(instr->type, f);
 	for (i = 0; i < instr->n_vals; i++) {
-		fprintf(f, " %i", instr->vals[i]->content.i);
+		fprintf(f, " ");
+		Value_fprint(instr->vals[i], f);
 	}
 }
 

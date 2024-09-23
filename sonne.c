@@ -88,14 +88,18 @@ main(
 	}
 
 	printf("\n# variables\n");
-	for (i = 0; i < mainS.n_vars; i++)
-		printf("- name: \"%s\", type: %i, int: %i\n",
-		       mainS.var_names[i], mainS.var_vals[i].type, mainS.var_vals[i].content.i);
+	for (i = 0; i < mainS.n_vars; i++) {
+		printf("- \"%s\": ", mainS.var_names[i]);
+		Value_fprint(&mainS.var_vals[i], stdout);
+		printf("\n");
+	}
 
 	printf("\n# tmpvals\n");
-	for (i = 0; i < mainS.n_tmpvals; i++)
-		printf("- type: %i, int: %i\n",
-		       mainS.tmpvals[i].type, mainS.tmpvals[i].content.i);
+	for (i = 0; i < mainS.n_tmpvals; i++) {
+		printf("- ");
+		Value_fprint(&mainS.tmpvals[i], stdout);
+		printf("\n");
+	}
 
 	printf("\n# total\n"
 	       "instrs: %i\n"

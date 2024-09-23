@@ -21,6 +21,13 @@ This caused a variety of corruptions
 
 - [ ] `i + 20s` is ok?
 
+- [ ] Scope.tmpvals is messy
+Maybe add another scope array for constants (magic numbers / values).
+All tmpvals should only be relevant for the current line of code,
+and should be empty in the next line.
+`i = i + ((20 + 4) - (6 / 3))`
+Needs a lot of tmpvals, which are irrelevant in the next line of code.
+
 - [ ] add runtime environment
 
 - [ ] add cli interactive mode
