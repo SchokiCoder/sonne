@@ -8,10 +8,98 @@
 void
 Instruction_add_value(
 	struct Instruction *i,
+	struct Value *v);
+
+struct Instruction
+Instruction_new_math(
+	enum InstructionType type,
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right);
+
+void
+Instruction_add_value(
+	struct Instruction *i,
 	struct Value *v)
 {
 	i->vals[i->n_vals] = v;
 	i->n_vals++;
+}
+
+struct Instruction
+Instruction_new_math(
+	enum InstructionType type,
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right)
+{
+	struct Instruction ret;
+
+	ret.type = type;
+	Instruction_add_value(&ret, dest);
+	Instruction_add_value(&ret, left);
+	Instruction_add_value(&ret, right);
+
+	return ret;
+}
+
+struct Instruction
+Instruction_new_mov(
+	struct Value *dest,
+	struct Value *src)
+{
+	struct Instruction ret;
+
+	ret.type = IT_mov;
+	Instruction_add_value(&ret, dest);
+	Instruction_add_value(&ret, src);
+
+	return ret;
+}
+
+struct Instruction
+Instruction_new_add(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right)
+{
+	return Instruction_new_math(IT_add, dest, left, right);
+}
+
+struct Instruction
+Instruction_new_sub(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right)
+{
+	return Instruction_new_math(IT_sub, dest, left, right);
+}
+
+struct Instruction
+Instruction_new_mul(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right)
+{
+	return Instruction_new_math(IT_mul, dest, left, right);
+}
+
+struct Instruction
+Instruction_new_div(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right)
+{
+	return Instruction_new_math(IT_div, dest, left, right);
+}
+
+struct Instruction
+Instruction_new_modulus(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right)
+{
+	return Instruction_new_math(IT_modulus, dest, left, right);
 }
 
 struct Scope

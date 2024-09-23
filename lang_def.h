@@ -26,7 +26,7 @@ struct Value {
 };
 
 enum InstructionType {
-	IT_assign,
+	IT_mov,
 	IT_add,
 	IT_sub,
 	IT_mul,
@@ -40,10 +40,40 @@ struct Instruction {
 	struct Value         *vals[8];
 };
 
-void
-Instruction_add_value(
-	struct Instruction *i,
-	struct Value *v);
+struct Instruction
+Instruction_new_mov(
+	struct Value *dest,
+	struct Value *src);
+
+struct Instruction
+Instruction_new_add(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right);
+
+struct Instruction
+Instruction_new_sub(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right);
+
+struct Instruction
+Instruction_new_mul(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right);
+
+struct Instruction
+Instruction_new_div(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right);
+
+struct Instruction
+Instruction_new_modulus(
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right);
 
 struct Scope {
 	char                name[SCOPE_NAME_MAX_LEN];

@@ -30,8 +30,11 @@ calls a scope_from_text(), which must end when finding a '}'
 
 - [x] add modulus operator to parse_math
 
-- [ ] make instruction struct opaque
-and add functions for constructing all instruction types
+- [x] add functions for constructing all instruction types
+Also rename assign to mov.
+I don't yet make instruction struct opaque,
+because that means they must live in heap,
+and I'd have to see how to all of this efficiently.
 
 - [ ] add "-a" and "-v" flags
 

@@ -179,7 +179,7 @@ char
 	struct Scope *scope,
 	char *line,
 	enum ParseStatus *ps,
-	struct Value *assign_target)
+	struct Value *dest)
 {
 	struct Value        *first;
 	struct Value        *second;
@@ -216,7 +216,7 @@ char
 		}
 	}
 
-	instr.type = IT_assign;
+	instr.type = IT_mov;
 	line = read_whitespace(line);
 
 	switch (*line) {
@@ -246,24 +246,40 @@ char
 	if (*ps)
 		return line;
 
-	if (instr.type == IT_assign) {
-		Instruction_add_value(&instr, assign_target);
-		Instruction_add_value(&instr, first);
+	if (instr.type == IT_mov) {
+		instr = Instruction_new_mov(dest, first);
 		Scope_add_instruction(scope, instr);
-	} else {
-		line = read_whitespace(line);
-		line = read_number(line, &val, ps);
-		if (*ps) {
-			return line;
-		}
-		Scope_add_tmpval(scope, val);
-		second = &scope->tmpvals[scope->n_tmpvals -1];
-
-		Instruction_add_value(&instr, assign_target);
-		Instruction_add_value(&instr, first);
-		Instruction_add_value(&instr, second);
-		Scope_add_instruction(scope, instr);
+		return line;
 	}
+
+	line = read_whitespace(line);
+	line = read_number(line, &val, ps);
+	if (*ps) {
+		return line;
+	}
+	Scope_add_tmpval(scope, val);
+	second = &scope->tmpvals[scope->n_tmpvals -1];
+
+	switch (instr.type) {
+	case IT_add:
+		instr = Instruction_new_add(dest, first, second);
+		break;
+	case IT_sub:
+		instr = Instruction_new_sub(dest, first, second);
+		break;
+	case IT_mul:
+		instr = Instruction_new_mul(dest, first, second);
+		break;
+	case IT_div:
+		instr = Instruction_new_div(dest, first, second);
+		break;
+	case IT_modulus:
+		instr = Instruction_new_modulus(dest, first, second);
+		break;
+	default:
+		fprintf(stderr, "mom's spagethi\n");
+	}
+	Scope_add_instruction(scope, instr);
 
 	return line;
 }
@@ -300,7 +316,7 @@ char
 		break;
 
 	case '=':
-		instr.type = IT_assign;
+		instr.type = IT_mov;
 
 		if (!symbol_found) {
 			 symbol_idx = scope->n_vars;
@@ -322,7 +338,7 @@ char
 			return line;
 		}
 
-		instr.type = IT_assign;
+		instr.type = IT_mov;
 		*line = tmp;
 		line = parse_math(scope, symbol, ps, &scope->var_vals[symbol_idx]);
 		break;
@@ -333,9 +349,8 @@ char
 			return line;
 		}
 
-		instr.type = IT_assign;
-		Instruction_add_value(&instr, &scope->expression);
-		Instruction_add_value(&instr, &scope->var_vals[symbol_idx]);
+		instr = Instruction_new_mov(&scope->expression,
+		                             &scope->var_vals[symbol_idx]);
 		Scope_add_instruction(scope, instr);
 		break;
 
