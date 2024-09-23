@@ -22,7 +22,12 @@ This caused a variety of corruptions
 - [x] fix some wonkiness when last line is empty
 It partially kept the previous line, thus interpreting it again.
 
-- [ ] expression of unknown variable is not triggered?
+- [x] remove expressions
+This will later be a thing that is fully contained within interactive mode,
+and otherwise is faulty code,
+because why would you toss meaningless statements into actual scripts anyway?
+
+- [ ] `a = a + 1` without a existing is ok
 
 - [ ] `i + 20s` is ok?
 

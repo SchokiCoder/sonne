@@ -66,7 +66,7 @@ char
 	struct Value *assign_target);
 
 char
-*parse_symbol(
+*parse_linestart_symbol(
 	struct Scope *scope,
 	char *line,
 	enum ParseStatus *ps);

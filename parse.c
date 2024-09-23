@@ -34,9 +34,8 @@ print_ParseStatus(
 		break;
 
 	case PS_unexptected_symbol_followup:
-		printf("%s:%i:%i: Expected function call, assignment, math, "
-		       "or end of line, "
-		       "after a given symbol\n",
+		printf("%s:%i:%i: Expected function, or assignment, "
+		       "after an initial symbol\n",
 		       filename, line, col);
 		break;
 
@@ -143,12 +142,9 @@ char
 
 	if (*line == '\n' || *line == '\0') {
 		return line;
-	}else if (*line >= '0' && *line <= '9') {
-		line = parse_math(scope, line, ps, &scope->expression);
-		return line;
 	} else if ((*line >= 'A' && *line <= 'Z') ||
 	           (*line >= 'a' && *line <= 'z')) {
-		line = parse_symbol(scope, line, ps);
+		line = parse_linestart_symbol(scope, line, ps);
 		return line;
 	} else {
 		*ps = PS_unexpected_line_start;
@@ -166,8 +162,8 @@ char
 	enum ParseStatus *ps,
 	struct Value *dest)
 {
-	struct Value        *first;
-	struct Value        *second;
+	struct Value       *first;
+	struct Value       *second;
 	struct Instruction  instr;
 	enum SymbolType     st;
 	int                 symbol_idx;
@@ -271,12 +267,11 @@ char
 }
 
 char
-*parse_symbol(
+*parse_linestart_symbol(
 	struct Scope *scope,
 	char *line,
 	enum ParseStatus *ps)
 {
-	struct Instruction  instr;
 	enum SymbolType     st;
 	char               *symbol = line;
 	char               *symbol_end;
@@ -302,8 +297,6 @@ char
 		break;
 
 	case '=':
-		instr.type = IT_mov;
-
 		if (!symbol_found) {
 			 symbol_idx = scope->n_vars;
 			 Scope_add_var(scope, symbol);
@@ -312,32 +305,6 @@ char
 		line++;
 		line = read_whitespace(line);
 		line = parse_math(scope, line, ps, &scope->var_vals[symbol_idx]);
-		break;
-
-	case '+':
-	case '-':
-	case '*':
-	case '/':
-	case '%':
-		if (!symbol_found) {
-			*ps = PS_variable_not_found;
-			return line;
-		}
-
-		instr.type = IT_mov;
-		*line = tmp;
-		line = parse_math(scope, symbol, ps, &scope->var_vals[symbol_idx]);
-		break;
-
-	case '\0':
-		if (!symbol_found) {
-			*ps = PS_variable_not_found;
-			return line;
-		}
-
-		instr = Instruction_new_mov(&scope->expression,
-		                             &scope->var_vals[symbol_idx]);
-		Scope_add_instruction(scope, instr);
 		break;
 
 	default:
