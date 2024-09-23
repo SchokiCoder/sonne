@@ -39,7 +39,7 @@ and I'd have to see how to all of this efficiently.
 - [x] add flags for about and version info
 Also change license to 2.1-only version of LGPL.
 
-- [ ] set version to v0.1
+- [x] set version to 0.1.0
 once it fully parses the example:
 ```
 25
