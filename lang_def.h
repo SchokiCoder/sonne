@@ -106,8 +106,9 @@ Scope_new(
 	char         *name,
 	struct Scope *parent);
 
-struct Scope
+void
 Scope_from_file(
+	struct Scope *s,
 	FILE *file,
 	char *const filename);
 

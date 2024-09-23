@@ -14,7 +14,8 @@ It was actually the x coord lol
 - [x] add using filenames via args to interpret files
 Also improve parse end report statistics 
 
-- [ ] scope is getting corrupted. after read/fclose?
+- [x] fix Scope_from_file being a return val
+This caused a variety of corruptions
 
 - [ ] expression of unknown variable is not triggered?
 

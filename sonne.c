@@ -74,7 +74,8 @@ main(
 			break;
 		}
 	}
-	mainS = Scope_from_file(file, filename);
+
+	Scope_from_file(&mainS, file, filename);
 	fclose(file);
 
 

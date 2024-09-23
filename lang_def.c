@@ -160,8 +160,9 @@ Scope_new(
 	return ret;
 }
 
-struct Scope
+void
 Scope_from_file(
+	struct Scope *s,
 	FILE *file,
 	char *const filename)
 {
@@ -170,10 +171,9 @@ Scope_from_file(
 	char              line[FILE_LINE_SIZE];
 	enum ParseStatus  ps;
 	int               reading = 1;
-	struct Scope      ret;
 	struct Scope     *root;
 
-	ret = Scope_new(filename, NULL);
+	*s = Scope_new(filename, NULL);
 
 	for (i = 0; reading; i++) {
 		errno = 0;
@@ -193,17 +193,15 @@ Scope_from_file(
 
 		ps = PS_ok;
 		cursor = line;
-		cursor = parse_line(&ret, cursor, &ps);
+		cursor = parse_line(s, cursor, &ps);
 		if (ps != PS_ok) {
-			root = &ret;
+			root = s;
 			while (root->parent != NULL) {
 				root = root->parent;
 			}
 			print_ParseStatus(ps, root->name, i + 1, cursor - line);
 		}
 	}
-
-	return ret;
 }
 
 void
