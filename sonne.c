@@ -8,12 +8,6 @@
 #include "lang_def.h"
 #include "parse.h"
 
-#define SCRIPT "25\n"\
-               "400 + 20\n"\
-               "i = 0\n"\
-               "i + 20\n"\
-               "i = i + 1"
-
 int
 main(
 	int argc,
@@ -21,6 +15,10 @@ main(
 {
 	int i;
 	struct Scope mainS;
+	char *filename;
+	char *filepath = NULL;
+	FILE *file;
+	char *tmp;
 
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-v") == 0) {
@@ -38,43 +36,73 @@ main(
 			       APP_REPO,
 			       APP_LICENSE_URL);
 			return 0;
+		} else {
+			filepath = argv[i];
 		}
 	}
 
-
-	/* small hack for now, until we read actual source files */
-	int script_len = strlen(SCRIPT);
-	char *text = malloc(script_len + 1);
-	if (text == NULL) {
-		fprintf(stderr, "Couldn't malloc for file buffer\n");
+	if (filepath == NULL) {
+		fprintf(stderr,
+		        "No input file, and interactive mode not yet there\n");
 		return 0;
 	}
-	strncpy(text, SCRIPT, script_len);
-	text[script_len] = '\0';
 
-	mainS = text_to_scope(text, script_len + 1);
+	file = fopen(filepath, "r");
+	if (file == NULL) {
+		fprintf(stderr,
+		        "The given filepath:\n"
+		        "\"%s\"\n"
+		        "is not valid.\n",
+		        filepath);
+		return 0;
+	}
 
+	filename = filepath;
+	while (1) {
+		tmp = strstr(filename, "/");
+		if (tmp != NULL) {
+			if (*(tmp + 1) == '\0') {
+				fprintf(stderr,
+				        "The given filepath:\n"
+				        "\"%s\"\n"
+				        "is not a single file.\n",
+				        filepath);
+				return 0;
+			}
+			filename = tmp + 1;
+		} else {
+			break;
+		}
+	}
+	mainS = Scope_from_file(file, filename);
+	fclose(file);
 
-	free(text); // hack cleanup
 
 	// statistics for me
 	printf("# instructions\n");
-	for (i = 0; i < mainS.n_instrs; i++)
-		printf("- type: %i, vals: %i\n",
-			mainS.instrs[i].type, mainS.instrs[i].n_vals);
+	for (i = 0; i < mainS.n_instrs; i++) {
+		printf("- ");
+		Instruction_fprint(&mainS.instrs[i], stdout);
+		printf("\n");
+	}
 
 	printf("\n# variables\n");
 	for (i = 0; i < mainS.n_vars; i++)
 		printf("- name: \"%s\", type: %i, int: %i\n",
-			mainS.var_names[i], mainS.var_vals[i].type, mainS.var_vals[i].content.i);
+		       mainS.var_names[i], mainS.var_vals[i].type, mainS.var_vals[i].content.i);
 
 	printf("\n# tmpvals\n");
 	for (i = 0; i < mainS.n_tmpvals; i++)
 		printf("- type: %i, int: %i\n",
-			mainS.tmpvals[i].type, mainS.tmpvals[i].content.i);
+		       mainS.tmpvals[i].type, mainS.tmpvals[i].content.i);
 
-	printf("\n# total\ninstrs: %i\ntmpvals: %i\n",
-		mainS.n_instrs, mainS.n_tmpvals);
+	printf("\n# total\n"
+	       "instrs: %i\n"
+	       "variables: %i\n"
+	       "tmpvals: %i\n",
+	       mainS.n_instrs,
+	       mainS.n_vars,
+	       mainS.n_tmpvals);
 
 
 	return 0;

@@ -3,7 +3,10 @@
 
 #include "lang_def.h"
 
+#include <errno.h>
 #include <string.h>
+
+#include "parse.h"
 
 void
 Instruction_add_value(
@@ -24,6 +27,33 @@ Instruction_add_value(
 {
 	i->vals[i->n_vals] = v;
 	i->n_vals++;
+}
+
+void
+InstructionType_fprint(
+	enum InstructionType it,
+	FILE *file)
+{
+	switch (it) {
+	case IT_mov:
+		fprintf(file, "mov");
+		break;
+	case IT_add:
+		fprintf(file, "add");
+		break;
+	case IT_sub:
+		fprintf(file, "sub");
+		break;
+	case IT_mul:
+		fprintf(file, "mul");
+		break;
+	case IT_div:
+		fprintf(file, "div");
+		break;
+	case IT_modulus:
+		fprintf(file, "modulus");
+		break;
+	}
 }
 
 struct Instruction
@@ -102,6 +132,19 @@ Instruction_new_modulus(
 	return Instruction_new_math(IT_modulus, dest, left, right);
 }
 
+void
+Instruction_fprint(
+	const struct Instruction *instr,
+	FILE *f)
+{
+	int i;
+
+	InstructionType_fprint(instr->type, f);
+	for (i = 0; i < instr->n_vals; i++) {
+		fprintf(f, " %i", instr->vals[i]->content.i);
+	}
+}
+
 struct Scope
 Scope_new(
 	char *name,
@@ -114,6 +157,52 @@ Scope_new(
 		.n_tmpvals = 0
 	};
 	strncpy(ret.name, name, SCOPE_NAME_MAX_LEN);
+	return ret;
+}
+
+struct Scope
+Scope_from_file(
+	FILE *file,
+	char *const filename)
+{
+	char             *cursor;
+	int               i;
+	char              line[FILE_LINE_SIZE];
+	enum ParseStatus  ps;
+	int               reading = 1;
+	struct Scope      ret;
+	struct Scope     *root;
+
+	ret = Scope_new(filename, NULL);
+
+	for (i = 0; reading; i++) {
+		errno = 0;
+		fgets(line, FILE_LINE_SIZE, file);
+		if (feof(file)) {
+			reading = 0;
+		}
+		if (errno != 0) {
+			fprintf(stderr,
+			        "There was an error, reading \"%s\":\n"
+			        "%i\n",
+			        filename,
+			        errno);
+			reading = 0;
+			break;
+		}
+
+		ps = PS_ok;
+		cursor = line;
+		cursor = parse_line(&ret, cursor, &ps);
+		if (ps != PS_ok) {
+			root = &ret;
+			while (root->parent != NULL) {
+				root = root->parent;
+			}
+			print_ParseStatus(ps, root->name, i + 1, cursor - line);
+		}
+	}
+
 	return ret;
 }
 

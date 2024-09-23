@@ -6,8 +6,6 @@
 
 #include "lang_def.h"
 
-#define FILE_MAX_LINES 512
-
 enum ParseStatus {
 	PS_ok,
 	PS_unexpected_line_start,
@@ -28,13 +26,6 @@ print_ParseStatus(
 	const char *filename,
 	const int line,
 	const int col);
-
-void
-text_to_lines(
-	char *text,
-	const int text_len,
-	char **lines,
-	int *n_lines);
 
 char
 *read_number(

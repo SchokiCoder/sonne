@@ -11,13 +11,16 @@ It was actually the x coord lol
 
 - [x] add filename to parse status print
 
+- [x] add using filenames via args to interpret files
+Also improve parse end report statistics 
+
+- [ ] scope is getting corrupted. after read/fclose?
+
 - [ ] expression of unknown variable is not triggered?
 
 - [ ] `i + 20s` is ok?
 
-- [ ] add using filenames via args to interpret files
-
-- [ ] add actual execution
+- [ ] add runtime environment
 
 - [ ] add cli interactive mode
 

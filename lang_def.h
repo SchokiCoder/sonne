@@ -4,6 +4,9 @@
 #ifndef _LANG_DEF_H
 #define _LANG_DEF_H
 
+#include <stdio.h>
+
+#define FILE_LINE_SIZE 128 /* if you have more, stop it, get some help */
 #define SCOPE_MAX_INSTRUCTIONS 2048
 #define SCOPE_MAX_VARIABLES 128
 #define SCOPE_MAX_TMPVALUES 128
@@ -33,6 +36,11 @@ enum InstructionType {
 	IT_div,
 	IT_modulus
 };
+
+void
+InstructionType_fprint(
+	enum InstructionType it,
+	FILE *file);
 
 struct Instruction {
 	enum InstructionType type;
@@ -75,6 +83,11 @@ Instruction_new_modulus(
 	struct Value *left,
 	struct Value *right);
 
+void
+Instruction_fprint(
+	const struct Instruction *i,
+	FILE *f);
+
 struct Scope {
 	char                name[SCOPE_NAME_MAX_LEN];
 	struct Scope       *parent;
@@ -92,6 +105,11 @@ struct Scope
 Scope_new(
 	char         *name,
 	struct Scope *parent);
+
+struct Scope
+Scope_from_file(
+	FILE *file,
+	char *const filename);
 
 void
 Scope_add_instruction(

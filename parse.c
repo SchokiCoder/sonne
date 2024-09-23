@@ -47,27 +47,6 @@ print_ParseStatus(
 	}
 }
 
-void
-text_to_lines(
-	char *text,
-	const int text_len,
-	char **lines,
-	int *n_lines)
-{
-	int i;
-
-	lines[0] = &text[0];
-	*n_lines = 1;
-
-	for (i = 0; i < text_len; i++) {
-		if (text[i] == '\n') {
-			lines[*n_lines] = &text[i + 1];
-			*n_lines += 1;
-			text[i] = '\0';
-		}
-	}
-}
-
 char
 *read_number(
 	char *line,
@@ -80,7 +59,7 @@ char
 	no->type = VT_int;
 
 	begin = line;
-	while (*line != '\0' && *line != ' ') {
+	while (*line != '\0' && *line != ' ' && *line != '\n') {
 		if (*line < '0' || *line > '9') {
 			*ps = PS_invalid_number;
 			return line;
@@ -225,6 +204,7 @@ char
 
 	switch (*line) {
 	case '\0':
+	case '\n':
 		break;
 	case '+':
 		instr.type = IT_add;
@@ -365,37 +345,4 @@ char
 	}
 
 	return line;
-}
-
-struct Scope
-text_to_scope(
-	char *text,
-	const int text_len)
-{
-	int               i;
-	char             *line;
-	char             *lines[FILE_MAX_LINES];
-	int               n_lines = 0;
-	enum ParseStatus  ps;
-	struct Scope      ret;
-	struct Scope     *root;
-
-	ret = Scope_new("main.son", NULL);
-
-	text_to_lines(text, text_len, lines, &n_lines);
-
-	for (i = 0; i < n_lines; i++) {
-		ps = PS_ok;
-		line = lines[i];
-		line = parse_line(&ret, line, &ps);
-		if (ps != PS_ok) {
-			root = &ret;
-			while (root->parent != NULL) {
-				root = root->parent;
-			}
-			print_ParseStatus(ps, root->name, i + 1, line - lines[i]);
-		}
-	}
-
-	return ret;
 }
