@@ -27,6 +27,8 @@ This will later be a thing that is fully contained within interactive mode,
 and otherwise is faulty code,
 because why would you toss meaningless statements into actual scripts anyway?
 
+- [x] add comments
+
 - [ ] `a = a + 1` without a existing is ok
 
 - [ ] `i + 20s` is ok?

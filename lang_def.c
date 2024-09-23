@@ -193,6 +193,28 @@ Scope_new(
 }
 
 void
+cut_off_comment(
+	char *line)
+{
+	int on = 1;
+
+	for (on = 1; on; line++) {
+		switch (*line) {
+		case '\n':
+		case '\0':
+			on = 0;
+			break;
+		case '#':
+			*line = '\0';
+			on = 0;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void
 Scope_from_file(
 	struct Scope *s,
 	FILE *file,
@@ -223,6 +245,8 @@ Scope_from_file(
 			reading = 0;
 			break;
 		}
+
+		cut_off_comment(line);
 
 		ps = PS_ok;
 		cursor = line;
