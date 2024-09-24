@@ -29,16 +29,20 @@ because why would you toss meaningless statements into actual scripts anyway?
 
 - [x] add comments
 
+- [ ] rework parsing to first convert the line into an array of Words, and that into the actual Instructions
+
+- [ ] add per line data `struct Statement`,
+which have their own instructions and tmp_vals
+
+- [ ] rework parse_math to actually be fully useful
+if first thing we find is operator, `dest` will become `first`, unless dest is NULL, that is a parse error
+if dest is empty, we need tmpval for that
+if we find a '(', call parse_math
+if we indd a ')', return from parse_math
+
 - [ ] `a = a + 1` without a existing is ok
 
 - [ ] `i + 20s` is ok?
-
-- [ ] Scope.tmpvals is messy
-Maybe add another scope array for constants (magic numbers / values).
-All tmpvals should only be relevant for the current line of code,
-and should be empty in the next line.
-`i = i + ((20 + 4) - (6 / 3))`
-Needs a lot of tmpvals, which are irrelevant in the next line of code.
 
 - [ ] add runtime environment
 

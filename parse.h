@@ -12,20 +12,46 @@ enum ParseStatus {
 	PS_invalid_number,
 	PS_invalid_operator,
 	PS_unexptected_symbol_followup,
-	PS_variable_not_found
+	PS_variable_not_found,
+	PS_unexpected_operator_followup,
+	PS_expected_operator
 };
+
+void
+ParseStatus_print(
+	const enum ParseStatus ps,
+	const char *filename,
+	const int line,
+	const int col);
 
 enum SymbolType {
 	ST_var,
 	ST_func
 };
 
-void
-print_ParseStatus(
-	const enum ParseStatus ps,
-	const char *filename,
-	const int line,
-	const int col);
+enum WordType {
+	WT_operator,
+	WT_variable,
+	WT_value
+};
+
+union WordC {
+	enum InstructionType  op;
+	struct Value         *var;
+	struct Value          val;
+};
+
+struct Word {
+	enum WordType type;
+	union WordC c;
+};
+
+char
+*Word_from_line(
+	struct Word      *w,
+	char             *line,
+	struct Scope     *scope,
+	enum ParseStatus *ps);
 
 char
 *read_number(

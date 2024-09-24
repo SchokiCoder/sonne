@@ -2,3 +2,9 @@ a = a + 0 # this shouldn't work
 
 i = 1
 i = i + 2
+
+# new parse_math should handle this
+#v2 = 1 + 2 + 3
+#v2 = (20 + 20 + 4) / (v2 - 2)
+#     ^               ^
+# one tmpval per parenth needed

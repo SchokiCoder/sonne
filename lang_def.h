@@ -59,6 +59,13 @@ struct Instruction {
 };
 
 struct Instruction
+Instruction_new_math(
+	enum InstructionType type,
+	struct Value *dest,
+	struct Value *left,
+	struct Value *right);
+
+struct Instruction
 Instruction_new_mov(
 	struct Value *dest,
 	struct Value *src);
@@ -131,8 +138,10 @@ Scope_add_var(
 	struct Scope *s,
 	char *name);
 
-void
-Scope_add_tmpval(
+/* Returns pointer to newly created value.
+ */
+struct Value
+*Scope_add_tmpval(
 	struct Scope *s,
 	struct Value v);
 

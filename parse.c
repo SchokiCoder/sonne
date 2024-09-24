@@ -11,7 +11,7 @@
 #include "lang_def.h"
 
 void
-print_ParseStatus(
+ParseStatus_print(
 	const enum ParseStatus ps,
 	const char *filename,
 	const int line,
@@ -43,7 +43,82 @@ print_ParseStatus(
 		printf("%s:%i:%i: Unknown variable referenced\n",
 		       filename, line, col);
 		break;
+
+	case PS_unexpected_operator_followup:
+		printf("%s:%i:%i: Expected value, variable, or function call, "
+		       "after mathematical operator\n",
+		       filename, line, col);
+		break;
+
+	case PS_expected_operator:
+		printf("%s:%i:%i: Expected operator\n",
+		       filename, line, col);
+		break;
 	}
+}
+
+char
+*Word_from_line(
+	struct Word      *w,
+	char             *line,
+	struct Scope     *scope,
+	enum ParseStatus *ps)
+{
+	enum SymbolType  st;
+	char            *symbol;
+	char            *symbol_end;
+	int              symbol_found;
+	int              symbol_idx;
+	char             tmp;
+
+	line = read_whitespace(line);
+
+	if (*line == '+') {
+		w->type = WT_operator;
+		w->c.op = IT_add;
+		line++;
+	} else if (*line == '-') {
+		w->type = WT_operator;
+		w->c.op = IT_sub;
+		line++;
+	} else if (*line == '*') {
+		w->type = WT_operator;
+		w->c.op = IT_mul;
+		line++;
+	} else if (*line == '/') {
+		w->type = WT_operator;
+		w->c.op = IT_div;
+		line++;
+	} else if (*line == '%') {
+		w->type = WT_operator;
+		w->c.op = IT_modulus;
+		line++;
+	} else if (*line >= '0' && *line <= '9') {
+		w->type = WT_value;
+		line = read_number(line, &w->c.val, ps);
+	} else if ((*line >= 'A' && *line <= 'Z') ||
+	           (*line >= 'a' && *line <= 'z')) {
+		symbol = line;
+		line = read_symbol(line,
+		                   scope,
+		                   &st,
+		                   &symbol_end,
+		                   &symbol_idx,
+		                   &symbol_found);
+		if (st == ST_func) {
+			printf("Functions not yet supported\n");
+			exit(0);
+		}
+		tmp = *symbol_end;
+		*symbol_end = '\0';
+		Scope_find_var(scope, symbol, &symbol_idx);
+		*symbol_end = tmp;
+
+		w->type = WT_variable;
+		w->c.var = &scope->var_vals[symbol_idx];
+	}
+
+	return line;
 }
 
 char
@@ -162,105 +237,70 @@ char
 	enum ParseStatus *ps,
 	struct Value *dest)
 {
-	struct Value       *first;
-	struct Value       *second;
 	struct Instruction  instr;
-	enum SymbolType     st;
-	int                 symbol_idx;
-	int                 symbol_found;
+	struct Value       *m_left;
+	struct Value       *m_right;
 	struct Value        val;
+	struct Word         word[2];
 
-	if (*line >= '0' && *line <= '9') {
-		line = read_number(line, &val, ps);
-		if (*ps) {
-			return line;
-		}
-		Scope_add_tmpval(scope, val);
-		first = &scope->tmpvals[scope->n_tmpvals -1];
-	} else {
-		line = read_symbol(line,
-		                   scope,
-		                   &st,
-		                   NULL,
-		                   &symbol_idx,
-		                   &symbol_found);
-
-		switch (st) {
-		case ST_var:
-			first = &scope->var_vals[symbol_idx];
-			break;
-
-		case ST_func:
-			printf("functions not supported yet\n");
-			return line;
-			break;
-		}
-	}
-
-	instr.type = IT_mov;
-	line = read_whitespace(line);
-
-	switch (*line) {
-	case '\0':
-	case '\n':
-		break;
-	case '+':
-		instr.type = IT_add;
-		break;
-	case '-':
-		instr.type = IT_sub;
-		break;
-	case '*':
-		instr.type = IT_mul;
-		break;
-	case '/':
-		instr.type = IT_div;
-		break;
-	case '%':
-		instr.type = IT_modulus;
-		break;
-	default:
-		*ps = PS_invalid_operator;
-		break;
-	}
-	line++;
-
-	if (*ps)
-		return line;
-
-	if (instr.type == IT_mov) {
-		instr = Instruction_new_mov(dest, first);
-		Scope_add_instruction(scope, instr);
-		return line;
-	}
-
-	line = read_whitespace(line);
-	line = read_number(line, &val, ps);
+	line = Word_from_line(&word[0], line, scope, ps);
 	if (*ps) {
 		return line;
 	}
-	Scope_add_tmpval(scope, val);
-	second = &scope->tmpvals[scope->n_tmpvals -1];
 
-	switch (instr.type) {
-	case IT_add:
-		instr = Instruction_new_add(dest, first, second);
+	switch (word[0].type) {
+	case WT_operator:
+		m_left = dest;
+		goto operator_is_read;
 		break;
-	case IT_sub:
-		instr = Instruction_new_sub(dest, first, second);
+
+	case WT_variable:
+		m_left = word[0].c.var;
 		break;
-	case IT_mul:
-		instr = Instruction_new_mul(dest, first, second);
+
+	case WT_value:
+		m_left = Scope_add_tmpval(scope, word[0].c.val);
 		break;
-	case IT_div:
-		instr = Instruction_new_div(dest, first, second);
-		break;
-	case IT_modulus:
-		instr = Instruction_new_modulus(dest, first, second);
-		break;
-	default:
-		fprintf(stderr, "mom's spagethi\n");
 	}
+
+	line = Word_from_line(&word[0], line, scope, ps);
+	if (*ps) {
+		return line;
+	}
+
+	if (word[0].type != WT_operator) {
+		*ps = PS_expected_operator;
+		return line;
+	}
+
+operator_is_read:
+
+	line = read_whitespace(line);
+	if (*line == '(') {
+		m_right = Scope_add_tmpval(scope, val);
+		line = parse_math(scope, line, ps, m_right);
+	} else {
+		Word_from_line(&word[1], line, scope, ps);
+		if (*ps) {
+			return line;
+		}
+		switch (word[1].type) {
+		case WT_operator:
+			*ps = PS_unexpected_operator_followup;
+			return line;
+			break;
+
+		case WT_variable:
+			m_right = word[1].c.var;
+			break;
+
+		case WT_value:
+			m_right = Scope_add_tmpval(scope, word[1].c.val);
+			break;
+		}
+	}
+
+	instr = Instruction_new_math(word[0].c.op, dest, m_left, m_right);
 	Scope_add_instruction(scope, instr);
 
 	return line;
@@ -303,7 +343,7 @@ char
 		}
 
 		line++;
-		line = read_whitespace(line);
+
 		line = parse_math(scope, line, ps, &scope->var_vals[symbol_idx]);
 		break;
 

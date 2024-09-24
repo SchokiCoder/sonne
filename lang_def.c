@@ -13,13 +13,6 @@ Instruction_add_value(
 	struct Instruction *i,
 	struct Value *v);
 
-struct Instruction
-Instruction_new_math(
-	enum InstructionType type,
-	struct Value *dest,
-	struct Value *left,
-	struct Value *right);
-
 void
 Instruction_add_value(
 	struct Instruction *i,
@@ -256,7 +249,7 @@ Scope_from_file(
 			while (root->parent != NULL) {
 				root = root->parent;
 			}
-			print_ParseStatus(ps, root->name, i + 1, cursor - line);
+			ParseStatus_print(ps, root->name, i + 1, cursor - line);
 		}
 	}
 }
@@ -279,13 +272,14 @@ Scope_add_var(
 	s->n_vars++;
 }
 
-void
-Scope_add_tmpval(
+struct Value
+*Scope_add_tmpval(
 	struct Scope *s,
 	struct Value v)
 {
 	s->tmpvals[s->n_tmpvals] = v;
 	s->n_tmpvals++;
+	return &s->tmpvals[s->n_tmpvals - 1];
 }
 
 int
