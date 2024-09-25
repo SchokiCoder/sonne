@@ -29,7 +29,7 @@ because why would you toss meaningless statements into actual scripts anyway?
 
 - [x] add comments
 
-- [ ] rework parsing to first convert the line into an array of Words, and that into the actual Instructions
+- [ ] rework towards tokenizing first, parsing second
 
 - [ ] add per line data `struct Statement`,
 which have their own instructions and tmp_vals

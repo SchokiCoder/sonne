@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "lang_def.h"
-#include "parse.h"
+#include "tokenizer.h"
 
 int
 main(
@@ -14,7 +13,7 @@ main(
 	char *argv[])
 {
 	int i;
-	struct Scope mainS;
+	//struct Scope mainS;
 	char *filename;
 	char *filepath = NULL;
 	FILE *file;
@@ -75,12 +74,15 @@ main(
 		}
 	}
 
-	Scope_from_file(&mainS, file, filename);
+	struct Token **t;
+	t = malloc(sizeof(struct Token) * 10 * 10);
+	Tokens_from_file(file, &t, 10, 10);
+	//Scope_from_file(&mainS, file, filename);
 	fclose(file);
 
 
 	// statistics for me
-	printf("# instructions\n");
+	/*printf("# instructions\n");
 	for (i = 0; i < mainS.n_instrs; i++) {
 		printf("- ");
 		Instruction_fprint(&mainS.instrs[i], stdout);
@@ -107,7 +109,7 @@ main(
 	       "tmpvals: %i\n",
 	       mainS.n_instrs,
 	       mainS.n_vars,
-	       mainS.n_tmpvals);
+	       mainS.n_tmpvals);*/
 
 
 	return 0;

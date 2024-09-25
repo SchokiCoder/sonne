@@ -24,35 +24,6 @@ ParseStatus_print(
 	const int line,
 	const int col);
 
-enum SymbolType {
-	ST_var,
-	ST_func
-};
-
-enum WordType {
-	WT_operator,
-	WT_variable,
-	WT_value
-};
-
-union WordC {
-	enum InstructionType  op;
-	struct Value         *var;
-	struct Value          val;
-};
-
-struct Word {
-	enum WordType type;
-	union WordC c;
-};
-
-char
-*Word_from_line(
-	struct Word      *w,
-	char             *line,
-	struct Scope     *scope,
-	enum ParseStatus *ps);
-
 char
 *read_number(
 	char *line,
@@ -69,7 +40,7 @@ char
 *read_symbol(
 	char            *line,
 	struct Scope    *scope,
-	enum SymbolType *st,
+	struct Token    *t,
 	char            **symbol_end_out,
 	int             *symbol_idx,
 	int             *symbol_found);

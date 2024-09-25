@@ -17,7 +17,7 @@ DEFINES := -D APP_NAME=$(APP_NAME) \
 
 .PHONY: clean
 
-sonne: sonne.c parse.c lang_def.c
+sonne: sonne.c tokenizer.c
 	$(CC) $(CFLAGS) $(DEFINES) $^ -o $@
 
 clean:
