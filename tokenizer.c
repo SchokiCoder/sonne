@@ -65,23 +65,24 @@ char
 
 	switch (*cursor) {
 	case '#':
-		begin = ++cursor;
-		while (*cursor != '\n' || *cursor != '\0') {
+		begin = cursor;
+		while (*cursor != '\n' && *cursor != '\0') {
 			cursor++;
 		}
-		cursor--;
 		read_len = (cursor - begin);
 
 		t->type = TT_comment;
-		t->c.comment = malloc(read_len);
+		t->c.comment = malloc(read_len + 1);
 		if (t->c.comment == NULL) {
 			*err = TE_malloc_failed;
 			return cursor;
 		}
+		t->c.comment[read_len] = '\0';
 		strncpy(t->c.comment, begin, read_len);
 		return cursor;
 		break;
 	
+	case '=':
 	case '+':
 	case '-':
 	case '*':
@@ -152,11 +153,12 @@ after_separator_assignment:
 		read_len = (cursor - begin);
 
 		t->type = TT_identifier;
-		t->c.identifier = malloc(read_len);
-		if (t->c.comment == NULL) {
+		t->c.identifier = malloc(read_len + 1);
+		if (t->c.identifier == NULL) {
 			*err = TE_malloc_failed;
 			return cursor;
 		}
+		t->c.identifier[read_len] = '\0';
 		strncpy(t->c.identifier, begin, read_len);
 		return cursor;
 	}
@@ -165,15 +167,69 @@ after_separator_assignment:
 	return cursor;
 }
 
-enum TokenizerError
+void
+Token_fprint(
+	const struct Token *t,
+	FILE *f)
+{
+	switch (t->type) {
+	case TT_comment:
+		fprintf(f, "TT_comment(%s)", t->c.comment);
+		break;
+
+	case TT_identifier:
+		fprintf(f, "TT_identifier(%s)", t->c.identifier);
+		break;
+
+	case TT_keyword:
+		fprintf(f, "TT_keyword(%i)", t->c.keyword);
+		break;
+
+	case TT_separator:
+		fprintf(f, "TT_separator(%c)", t->c.separator);
+		break;
+
+	case TT_operator:
+		fprintf(f, "TT_operator(%c)", t->c.operator);
+		break;
+
+	case TT_literal:
+		fprintf(f, "TT_literal(");
+		Value_fprint(&t->c.literal, f);
+		fprintf(f, ")");
+		break;
+
+	case TT_whitespace:
+		fprintf(f, "TT_whitespace(NA)");
+		break;
+	}
+}
+
+void
+Token_free(
+	struct Token *t)
+{
+	switch (t->type) {
+	case TT_comment:
+		free(t->c.comment);
+		break;
+	case TT_identifier:
+		free(t->c.identifier);
+		break;
+	default:
+		break;
+	}
+}
+
+int
 Tokens_from_file(
-	FILE           *f,
-	struct Token ***t,
-	int             rows,
-	int             cols)
+	FILE                *f,
+	struct Token        *t,
+	int                  buflen,
+	enum TokenizerError *err)
 {
 	char                *cursor;
-	enum TokenizerError  err;
+	int                  i = 0;
 	int                  row;
 	int                  col;
 	char                 line[FILE_LINE_SIZE];
@@ -181,10 +237,6 @@ Tokens_from_file(
 	int                  row_done = 0;
 
 	for (row = 1; !file_done; row++) {
-		if (row - 1 > rows) {
-			return TE_tbuf_too_small;
-		}
-
 		errno = 0;
 		line[0] = '\0';
 		fgets(line, FILE_LINE_SIZE, f);
@@ -192,28 +244,32 @@ Tokens_from_file(
 			file_done = 1;
 		}
 		if (errno != 0) {
-			return TE_file_read_failed;
+			*err = TE_file_read_failed;
+			return i;
 		}
 
-		err = TE_ok;
+		*err = TE_ok;
 		cursor = line;
 		row_done = 0;
-		for (col = 0; !row_done; col++) {
-			if (col > cols) {
-				return TE_tbuf_too_small;
+		for (; !row_done; i++) {
+			if (i >= buflen) {
+				*err = TE_tbuf_too_small;
+				return i;
 			}
 
-			cursor = Token_from_str(t[row][col], cursor, &err, row, col);
-			if (err) {
-				return err;
+			col = cursor - line;
+			cursor = Token_from_str(&t[i], cursor, err, row, col);
+			if (*err) {
+				return i;
 			}
 			
-			if (t[row][col]->type == TT_separator &&
-			    t[row][col]->c.separator == '\n') {
+			if (t[i].type == TT_separator &&
+			    t[i].c.separator == '\n') {
 				row_done = 1;
 			}
 		}
 	}
 
-	return TE_ok;
+	*err = TE_ok;
+	return i;
 }

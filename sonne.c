@@ -74,14 +74,30 @@ main(
 		}
 	}
 
-	struct Token **t;
-	t = malloc(sizeof(struct Token) * 10 * 10);
-	Tokens_from_file(file, &t, 10, 10);
-	//Scope_from_file(&mainS, file, filename);
+	struct Token t[100];
+	enum TokenizerError te;
+	int len;
+
+	len = Tokens_from_file(file, t, 100, &te);
+	if (te) {
+		printf("TE: %i\n", te);
+	}
+
 	fclose(file);
 
 
 	// statistics for me
+	printf("# tokens\n");
+	for (i = 0; i < len; i++) {
+		printf("- ");
+		Token_fprint(&t[i], stdout);
+		printf("\n");
+	}
+
+	printf("\n# total\n"
+	       "tokens: %i\n",
+	       len);
+
 	/*printf("# instructions\n");
 	for (i = 0; i < mainS.n_instrs; i++) {
 		printf("- ");
@@ -111,6 +127,9 @@ main(
 	       mainS.n_vars,
 	       mainS.n_tmpvals);*/
 
+	for (i = 0; i < len; i++) {
+		Token_free(&t[i]);
+	}
 
 	return 0;
 }

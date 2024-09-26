@@ -16,11 +16,6 @@ enum ValueType {
 	VT_float
 };
 
-void
-ValueType_fprint(
-	enum ValueType vt,
-	FILE *file);
-
 union ValueContent {
 	int   i;
 	float f;
@@ -30,11 +25,6 @@ struct Value {
 	enum ValueType     type;
 	union ValueContent c;
 };
-
-void
-Value_fprint(
-	const struct Value *v,
-	FILE *f);
 
 enum TokenizerError {
 	TE_ok,
@@ -71,11 +61,36 @@ struct Token {
 	int col;
 };
 
-enum TokenizerError
+void
+ValueType_fprint(
+	enum ValueType vt,
+	FILE *file);
+
+void
+Value_fprint(
+	const struct Value *v,
+	FILE *f);
+
+void
+Token_fprint(
+	const struct Token *t,
+	FILE *f);
+
+void
+Token_free(
+	struct Token *t);
+
+/* f:      file
+ * t:      token array
+ * buflen: amount elemens that can be held by t
+ * err:    pointer to error, if function runs as expected writes ok value here
+ * Returns amount of read tokens.
+ */
+int
 Tokens_from_file(
-	FILE           *f,
-	struct Token ***t,
-	int             rows,
-	int             cols);
+	FILE                *f,
+	struct Token        *t,
+	int                  buflen,
+	enum TokenizerError *err);
 
 #endif /* _TOKENIZER_H */

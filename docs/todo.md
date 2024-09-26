@@ -29,7 +29,11 @@ because why would you toss meaningless statements into actual scripts anyway?
 
 - [x] add comments
 
-- [ ] rework towards tokenizing first, parsing second
+- [x] rework towards separate tokenizing
+
+- [ ] add translation based on tokens
+
+
 
 - [ ] add per line data `struct Statement`,
 which have their own instructions and tmp_vals
@@ -39,10 +43,6 @@ if first thing we find is operator, `dest` will become `first`, unless dest is N
 if dest is empty, we need tmpval for that
 if we find a '(', call parse_math
 if we indd a ')', return from parse_math
-
-- [ ] `a = a + 1` without a existing is ok
-
-- [ ] `i + 20s` is ok?
 
 - [ ] add runtime environment
 
