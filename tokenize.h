@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-2.1-only
 // Copyright (C) 2024  Andy Frank Schoknecht
 
-#ifndef _TOKENIZER_H
-#define _TOKENIZER_H
+#ifndef _TOKENIZE_H
+#define _TOKENIZE_H
 
 #include <stdio.h>
 
@@ -93,4 +93,4 @@ Tokens_from_file(
 	int                  buflen,
 	enum TokenizerError *err);
 
-#endif /* _TOKENIZER_H */
+#endif /* _TOKENIZE_H */

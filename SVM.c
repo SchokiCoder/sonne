@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: LGPL-2.1-only
 // Copyright (C) 2024  Andy Frank Schoknecht
 
-#include "lang_def.h"
+#include "SVM.h"
 
-#include <errno.h>
+#include <stdlib.h>
 #include <string.h>
-
-#include "parse.h"
 
 void
 Instruction_add_value(
@@ -20,37 +18,6 @@ Instruction_add_value(
 {
 	i->vals[i->n_vals] = v;
 	i->n_vals++;
-}
-
-void
-ValueType_fprint(
-	enum ValueType vt,
-	FILE *file)
-{
-	switch (vt) {
-	case VT_int:
-		fprintf(file, "int");
-		break;
-	case VT_float:
-		fprintf(file, "float");
-		break;
-	}
-}
-
-void
-Value_fprint(
-	const struct Value *v,
-	FILE *f)
-{
-	ValueType_fprint(v->type, f);
-	switch (v->type) {
-	case VT_int:
-		fprintf(f, "(%i)", v->content.i);
-		break;
-	case VT_float:
-		fprintf(f, "(%f)", v->content.f);
-		break;
-	}
 }
 
 void
@@ -176,82 +143,38 @@ Scope_new(
 	struct Scope *parent)
 {
 	struct Scope ret = {
+		.name = name,
 		.parent = parent,
-		.n_instrs = 0,
+		.n_literals = 0,
+		.n_tmp_vals = 0,
 		.n_vars = 0,
-		.n_tmpvals = 0
+		.n_instrs = 0
 	};
-	strncpy(ret.name, name, SCOPE_NAME_MAX_LEN);
 	return ret;
 }
 
 void
-cut_off_comment(
-	char *line)
-{
-	int on = 1;
-
-	for (on = 1; on; line++) {
-		switch (*line) {
-		case '\n':
-		case '\0':
-			on = 0;
-			break;
-		case '#':
-			*line = '\0';
-			on = 0;
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-void
-Scope_from_file(
+Scope_fprint(
 	struct Scope *s,
-	FILE *file,
-	char *const filename)
+	FILE *f)
 {
-	char             *cursor;
-	int               i;
-	char              line[FILE_LINE_SIZE];
-	enum ParseStatus  ps;
-	int               reading = 1;
-	struct Scope     *root;
-
-	*s = Scope_new(filename, NULL);
-
-	for (i = 0; reading; i++) {
-		errno = 0;
-		line[0] = '\0';
-		fgets(line, FILE_LINE_SIZE, file);
-		if (feof(file)) {
-			reading = 0;
-		}
-		if (errno != 0) {
-			fprintf(stderr,
-			        "There was an error, reading \"%s\":\n"
-			        "%i\n",
-			        filename,
-			        errno);
-			reading = 0;
-			break;
-		}
-
-		cut_off_comment(line);
-
-		ps = PS_ok;
-		cursor = line;
-		cursor = parse_line(s, cursor, &ps);
-		if (ps != PS_ok) {
-			root = s;
-			while (root->parent != NULL) {
-				root = root->parent;
-			}
-			ParseStatus_print(ps, root->name, i + 1, cursor - line);
-		}
-	}
+	fprintf(f, "<---\nScope begin\n"
+	           "name = \"%s\"\n"
+	           "parent = %p\n"
+	           "n_literals = %i\n"
+	           "literals = %p\n"
+	           "n_tmp_vals = %i\n"
+	           "tmp_vals = %p\n"
+	           "n_vars = %i\n"
+	           "var_names = %p\n"
+	           "var_vals = %p\n"
+	           "n_instrs = %i\n"
+	           "instrs = %p\n"
+	           "Scope end\n--->\n",
+	        s->name, (void*) s->parent, s->n_literals, (void*) s->literals,
+	        s->n_tmp_vals, (void*) s->tmp_vals, s->n_vars,
+	        (void*) s->var_names, (void*) s->var_vals, s->n_instrs,
+	        (void*) s->instrs);
 }
 
 void
@@ -268,34 +191,112 @@ Scope_add_var(
 	struct Scope *s,
 	char *name)
 {
-	strncpy(s->var_names[s->n_vars], name, VARIABLE_NAME_MAX_LEN);
+	s->var_names[s->n_vars] = name;
 	s->n_vars++;
 }
 
 struct Value
-*Scope_add_tmpval(
+*Scope_add_tmp_val(
 	struct Scope *s,
 	struct Value v)
 {
-	s->tmpvals[s->n_tmpvals] = v;
-	s->n_tmpvals++;
-	return &s->tmpvals[s->n_tmpvals - 1];
+	s->tmp_vals[s->n_tmp_vals] = v;
+	s->n_tmp_vals++;
+	return &s->tmp_vals[s->n_tmp_vals - 1];
 }
 
 int
 Scope_find_var(
 	struct Scope *s,
-	char *name,
-	int *idx)
+	char *name)
 {
 	int i;
 
 	for (i = 0; i < s->n_vars; i++) {
 		if (strcmp(name, s->var_names[i]) == 0) {
-			*idx = i;
-			return 1;
+			return i;
 		}
 	}
 
-	return 0;
+	return -1;
+}
+
+struct Module
+Module_new(
+	char *name)
+{
+	struct Module ret = {
+		.name = name,
+		.tsize = 0,
+		.tlen = 0,
+		.global = Scope_new(name, NULL)
+	};
+	return ret;
+}
+
+enum TokenizerError
+Module_from_file(
+	struct Module *mod,	
+	FILE *f,
+	char *filename)
+{
+	enum TokenizerError te;
+	int tokens_read;
+
+	*mod = Module_new(filename);
+	mod->tsize = 64;
+	mod->t = malloc(sizeof(struct Token) * mod->tsize);
+	if (mod->t == NULL) {
+		return TE_malloc_failed;
+	}
+
+	while (1) {
+		tokens_read = Tokens_from_file(f,
+		                               &mod->t[mod->tlen],
+		                               mod->tsize - mod->tlen,
+		                               &te);
+		mod->tlen += tokens_read;
+
+		switch (te) {
+		case TE_tbuf_too_small:
+			mod->tsize *= 2;
+			mod->t = realloc(mod->t, mod->tsize);
+			if (mod->t == NULL) {
+				return TE_malloc_failed;
+			}
+			break;
+
+		default:
+			return te;
+			break;
+		}
+	}
+}
+
+void
+Module_fprint(
+	struct Module *mod,
+	FILE *f)
+{
+	fprintf(f, "<---\nModule begin\n"
+	           "name = \"%s\"\n"
+	           "t = %p\n"
+	           "tsize = %i\n"
+	           "tlen = %i\n"
+	           "global = ",
+	        mod->name, (void*) mod->t, mod->tsize, mod->tlen);
+	Scope_fprint(&mod->global, f);
+	fprintf(f, "Module end\n--->\n");
+}
+
+void
+Module_free(
+	struct Module *mod)
+{
+	int i;
+
+	for (i = 0; i < mod->tlen; i++) {
+		Token_free(&mod->t[i]);
+	}
+	free(mod->t);
 }

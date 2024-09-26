@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-only
 // Copyright (C) 2024  Andy Frank Schoknecht
 
-#include "tokenizer.h"
+#include "tokenize.h"
 
 #include <errno.h>
 #include <stdlib.h>

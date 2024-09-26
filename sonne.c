@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "tokenizer.h"
+#include "tokenize.h"
+#include "SVM.h"
 
 int
 main(
@@ -13,7 +14,7 @@ main(
 	char *argv[])
 {
 	int i;
-	//struct Scope mainS;
+	struct Module mainM;
 	char *filename;
 	char *filepath = NULL;
 	FILE *file;
@@ -74,62 +75,12 @@ main(
 		}
 	}
 
-	struct Token t[100];
-	enum TokenizerError te;
-	int len;
-
-	len = Tokens_from_file(file, t, 100, &te);
-	if (te) {
-		printf("TE: %i\n", te);
-	}
-
+	Module_from_file(&mainM, file, filename);
 	fclose(file);
 
+	Module_fprint(&mainM, stdout);
 
-	// statistics for me
-	printf("# tokens\n");
-	for (i = 0; i < len; i++) {
-		printf("- ");
-		Token_fprint(&t[i], stdout);
-		printf("\n");
-	}
-
-	printf("\n# total\n"
-	       "tokens: %i\n",
-	       len);
-
-	/*printf("# instructions\n");
-	for (i = 0; i < mainS.n_instrs; i++) {
-		printf("- ");
-		Instruction_fprint(&mainS.instrs[i], stdout);
-		printf("\n");
-	}
-
-	printf("\n# variables\n");
-	for (i = 0; i < mainS.n_vars; i++) {
-		printf("- \"%s\": ", mainS.var_names[i]);
-		Value_fprint(&mainS.var_vals[i], stdout);
-		printf("\n");
-	}
-
-	printf("\n# tmpvals\n");
-	for (i = 0; i < mainS.n_tmpvals; i++) {
-		printf("- ");
-		Value_fprint(&mainS.tmpvals[i], stdout);
-		printf("\n");
-	}
-
-	printf("\n# total\n"
-	       "instrs: %i\n"
-	       "variables: %i\n"
-	       "tmpvals: %i\n",
-	       mainS.n_instrs,
-	       mainS.n_vars,
-	       mainS.n_tmpvals);*/
-
-	for (i = 0; i < len; i++) {
-		Token_free(&t[i]);
-	}
+	Module_free(&mainM);
 
 	return 0;
 }

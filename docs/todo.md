@@ -32,6 +32,8 @@ because why would you toss meaningless statements into actual scripts anyway?
 - [x] rework towards separate tokenizing
 
 - [ ] add translation based on tokens
+Add Module struct.
+todo: fill Module scope
 
 
 
