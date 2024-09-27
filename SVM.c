@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "translate.h"
+
 void
 Instruction_add_value(
 	struct Instruction *i,
@@ -241,6 +243,7 @@ Module_from_file(
 	char *filename)
 {
 	enum TokenizerError te;
+	enum TranslateStatus ts;
 	int tokens_read;
 
 	*mod = Module_new(filename);
@@ -270,6 +273,20 @@ Module_from_file(
 			return te;
 			break;
 		}
+	}
+
+	tokens_to_scope(mod->t, mod->tlen, &mod->global, &ts);
+	switch (ts) {
+	case TS_new_scope_found:
+		make new scope and call on that scope;
+		break;
+
+	case TS_scope_ended:
+		break;
+
+	default:
+		something went wrong;
+		break;
 	}
 }
 

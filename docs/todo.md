@@ -32,13 +32,13 @@ because why would you toss meaningless statements into actual scripts anyway?
 - [x] rework towards separate tokenizing
 
 - [ ] add translation based on tokens
-Add Module struct.
-todo: fill Module scope
+todo: see compile warns and errs
 
 
 
 - [ ] add per line data `struct Statement`,
 which have their own instructions and tmp_vals
+No, probably slows down VM runtime
 
 - [ ] rework parse_math to actually be fully useful
 if first thing we find is operator, `dest` will become `first`, unless dest is NULL, that is a parse error

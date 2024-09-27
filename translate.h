@@ -9,6 +9,8 @@
 
 enum TranslateStatus {
 	TS_ok,
+	TS_new_scope_found,
+	TS_scope_ended,
 	TS_unexpected_line_start,
 	TS_unknown_variable_referenced,
 	TS_expected_operator,
@@ -21,5 +23,23 @@ TranslateStatus_print(
 	const char *filename,
 	const int row,
 	const int col);
+
+/* Returns amount of translated tokens.
+ */
+int
+tokens_to_scope(
+	struct Token *t,
+	int tlen,
+	struct Scope *s,
+	enum TranslateStatus *ts);
+
+/* Returns amount of translated tokens.
+ */
+int
+tokens_to_statement(
+	struct Token *t,
+	int tlen,
+	struct Scope *s,
+	enum TranslateStatus *ts);
 
 #endif /* _TRANSLATE_H */
