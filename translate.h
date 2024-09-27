@@ -11,10 +11,11 @@ enum TranslateStatus {
 	TS_ok,
 	TS_new_scope_found,
 	TS_scope_ended,
-	TS_unexpected_line_start,
 	TS_unknown_variable_referenced,
+	TS_expected_identifier,
 	TS_expected_operator,
-	TS_expected_expression
+	TS_expected_expression,
+	TS_expected_end_of_statement,
 };
 
 void

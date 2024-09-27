@@ -14,6 +14,14 @@ skip_whitespace_tokens(
 	int tlen);
 
 int
+translate_expression(
+	struct Scope *s,
+	struct Value *dest,
+	struct Token *t,
+	int tlen,
+	enum TranslateStatus *ts);
+
+int
 skip_tokens_to_statement_end(
 	struct Token *t,
 	int tlen)
@@ -43,6 +51,19 @@ skip_whitespace_tokens(
 	return i + 1;
 }
 
+int
+translate_expression(
+	struct Scope *s,
+	struct Value *dest,
+	struct Token *t,
+	int tlen,
+	enum TranslateStatus *ts)
+{
+	// looks ahead for '*', '/'; make instructions for those, then the rest
+	// calls itself upon '(' with dest being a temp_val in scope
+	// stops at ')', ',', '\n'
+}
+
 void
 TranslateStatus_print(
 	const enum TranslateStatus ts,
@@ -56,13 +77,13 @@ TranslateStatus_print(
 	case TS_scope_ended:
 		break;
 
-	case TS_unexpected_line_start:
-		printf("%s:%i:%i: Unexpected line start\n", filename, line, col);
-		break;
-
 	case TS_unknown_variable_referenced:
 		printf("%s:%i:%i: Unknown variable referenced\n",
 		       filename, line, col);
+		break;
+
+	case TS_expected_identifier:
+		printf("%s:%i:%i: Expected identifier\n", filename, line, col);
 		break;
 
 	case TS_expected_expression:
@@ -73,6 +94,11 @@ TranslateStatus_print(
 
 	case TS_expected_operator:
 		printf("%s:%i:%i: Expected operator\n",
+		       filename, line, col);
+		break;
+
+	case TS_expected_end_of_statement:
+		printf("%s:%i:%i: Expected end of statement\n",
 		       filename, line, col);
 		break;
 	}
@@ -114,14 +140,19 @@ tokens_to_statement(
 	struct Scope *s,
 	enum TranslateStatus *ts)
 {
+	int begin;
 	int i = 0;
+	int var_idx;
 
 	if (tlen == 0)
 		return 0;
 
-	while (t[i].type == TT_whitespace) {
+	while (i < tlen &&
+	       t[i].type == TT_whitespace) {
 		i++;
 	}
+
+	begin = i;
 
 	switch (t[i].type) {
 	case TT_comment:
@@ -130,6 +161,37 @@ tokens_to_statement(
 		break;
 
 	case TT_identifier:
+		if (i + 1 >= tlen) {
+			*ts = TS_expected_operator;
+			return i;
+		}
+
+		i += skip_whitespace_tokens(&t[i], tlen - i);
+
+		if (i >= tlen ||
+		    t[i].type != TT_operator ||
+		    t[i].c.operator != '=') {
+			*ts = TS_expected_operator;
+			return i;
+		}
+		var_idx = Scope_find_var(s, t[begin].c.identifier);
+		if (var_idx == -1) {
+			var_idx = Scope_add_var(s, t[begin].c.identifier);
+		};
+		i++;
+
+		i += skip_whitespace_tokens(&t[i], tlen - i);
+
+		i = translate_expression(s, &s->var_vals[var_idx],
+		                        &t[i], tlen - i,
+		                        ts);
+
+		if (i >= tlen ||
+		    (t[i].type != TT_separator &&
+		     t[i].c.separator != '\n')) {
+			*ts = TS_expected_end_of_statement;
+			return i;
+		}
 		break;
 
 	case TT_keyword:
@@ -137,7 +199,7 @@ tokens_to_statement(
 
 	case TT_separator:
 		if (t[i].c.separator != '\n') {
-			*ts = TS_unexpected_line_start;
+			*ts = TS_expected_identifier;
 			i = skip_tokens_to_statement_end(&t[i], tlen - i);
 		}
 		return i;
@@ -146,7 +208,7 @@ tokens_to_statement(
 	case TT_operator:
 	case TT_literal:
 	case TT_whitespace:
-		*ts = TS_unexpected_line_start;
+		*ts = TS_expected_identifier;
 		i = skip_tokens_to_statement_end(&t[i], tlen - i);
 		return i;
 		break;

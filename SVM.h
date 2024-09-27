@@ -117,7 +117,7 @@ Scope_add_instruction(
 	struct Scope *s,
 	struct Instruction i);
 
-void
+int
 Scope_add_var(
 	struct Scope *s,
 	char *name);
@@ -131,7 +131,6 @@ struct Value
 
 /* s:    Scope
  * name: Name of variable
- * idx:  Saving index of variable in that scope to that pointer location
  * Returns index if found, otherwise returns -1
  */
 int

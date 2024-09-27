@@ -188,13 +188,16 @@ Scope_add_instruction(
 	s->n_instrs++;
 }
 
-void
+/* Returns index of newly created variable.
+ */
+int
 Scope_add_var(
 	struct Scope *s,
 	char *name)
 {
 	s->var_names[s->n_vars] = name;
 	s->n_vars++;
+	return s->n_vars - 1;
 }
 
 struct Value
