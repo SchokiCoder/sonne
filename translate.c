@@ -59,9 +59,121 @@ translate_expression(
 	int tlen,
 	enum TranslateStatus *ts)
 {
-	// looks ahead for '*', '/'; make instructions for those, then the rest
-	// calls itself upon '(' with dest being a temp_val in scope
-	// stops at ')', ',', '\n'
+	int a;
+	int i = 0;
+	struct Instruction instr;
+	struct Value *first;
+	struct Value *second;
+	struct Value  tmpval = {
+		.type = VT_int,
+		.c.i = 0
+	};
+	char operator;
+
+	i = skip_whitespace_tokens(&t[i], tlen - i);
+
+	switch (t[i].type) {
+	case TT_literal:
+		first = &t[i].c.literal;
+		break;
+	default:
+		*ts = TS_expected_value;
+		return i;
+		break;
+	}
+	i++;
+
+	i = skip_whitespace_tokens(&t[i], tlen - i);
+
+	if (i >= tlen) {
+		*ts = TS_expected_value;
+		return i;
+	}
+	if (t[i].type != TT_operator) {
+		*ts = TS_expected_operator;
+		return i;
+	}
+	operator = t[i].c.operator;
+	i++;
+
+	i = skip_whitespace_tokens(&t[i], tlen - i);
+
+	if (i >= tlen) {
+		*ts = TS_expected_value;
+		return i;
+	}
+	switch (t[i].type) {
+	case TT_literal:
+		second = &t[i].c.literal;
+		break;
+
+	case TT_separator:
+		if (t[i].c.separator == '(') {
+			second = Scope_add_tmp_val(s, tmpval);
+			i = translate_expression(s, second, &t[i], tlen - i, ts);
+			if (*ts) {
+				return i;
+			}
+		}
+		break;
+
+	default:
+		*ts = TS_expected_value;
+		return i;
+		break;
+	}
+	i++;
+
+	switch (operator) {
+	case '*':
+		instr = Instruction_new_mul(dest, first, second);
+		break;
+	case '/':
+		instr = Instruction_new_div(dest, first, second);
+		break;
+	case '%':
+		instr = Instruction_new_modulus(dest, first, second);
+		break;
+
+	case '+':
+		instr = Instruction_new_add(dest, first, second);
+		goto low_prio_instr;
+	case '-':
+		instr = Instruction_new_sub(dest, first, second);
+		goto low_prio_instr;
+
+low_prio_instr:
+		for (a = i + 1; a < tlen; a++) {
+			switch (t[a].type) {
+			case TT_operator:
+				if (t[a].c.operator != '+' &&
+				    t[a].c.operator != '-') {
+					second = Scope_add_tmp_val(s, tmpval);
+					i++;
+					i = translate_expression(s, second, &t[i], tlen - i, ts);
+					if (*ts) {
+						return i;
+					}
+				}
+				break;
+			case TT_comment:
+			case TT_separator:
+				a = tlen;
+				break;
+			default:
+				break;
+			}
+		}
+		break;
+
+	default:
+		fprintf(stderr, "You are a wizard, Harry.\n");
+		return i;
+		break;
+	}
+
+	Scope_add_instruction(s, instr);
+	return i;
 }
 
 void
@@ -95,6 +207,10 @@ TranslateStatus_print(
 	case TS_expected_operator:
 		printf("%s:%i:%i: Expected operator\n",
 		       filename, line, col);
+		break;
+
+case TS_expected_value:
+		printf("%s:%i:%i: Expected value\n", filename, line, col);
 		break;
 
 	case TS_expected_end_of_statement:

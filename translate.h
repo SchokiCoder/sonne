@@ -15,6 +15,7 @@ enum TranslateStatus {
 	TS_expected_identifier,
 	TS_expected_operator,
 	TS_expected_expression,
+	TS_expected_value,
 	TS_expected_end_of_statement,
 };
 
