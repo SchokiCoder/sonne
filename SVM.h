@@ -13,6 +13,25 @@
 #define SCOPE_MAX_VARIABLES    128
 #define SCOPE_MAX_TMP_VALUES   128
 
+enum TranslateStatus {
+	TS_ok,
+	TS_new_scope_found,
+	TS_scope_ended,
+	TS_unknown_variable_referenced,
+	TS_expected_identifier,
+	TS_expected_operator,
+	TS_expected_expression,
+	TS_expected_value,
+	TS_expected_end_of_statement,
+};
+
+void
+TranslateStatus_print(
+	const enum TranslateStatus ts,
+	const char *filename,
+	const int row,
+	const int col);
+
 enum InstructionType {
 	IT_mov,
 	IT_add,
@@ -47,8 +66,20 @@ struct Module {
 	struct Token *t;
 	int           tsize;
 	int           tlen;
-	struct Scope  global;
+	int           tc; /* token cursor */
+	struct Scope *s;
+	int           ssize;
+	int           slen;
 };
+
+/* Returns amount of translated tokens.
+ */
+int
+tokens_to_statement(
+	struct Token *t,
+	int tlen,
+	struct Scope *s,
+	enum TranslateStatus *ts);
 
 void
 InstructionType_fprint(
@@ -107,6 +138,15 @@ Scope_new(
 	char         *name,
 	struct Scope *parent);
 
+/* Returns amount of translated tokens.
+ */
+int
+Scope_from_tokens(
+	struct Token *t,
+	int tlen,
+	struct Scope *s,
+	enum TranslateStatus *ts);
+
 void
 Scope_fprint(
 	struct Scope *s,
@@ -142,11 +182,15 @@ struct Module
 Module_new(
 	char *name);
 
-enum TokenizerError
+/* Returns non zero on odd error cases, like mallocs being impossible.
+ */
+int
 Module_from_file(
-	struct Module *mod,	
-	FILE *f,
-	char *filename);
+	struct Module        *mod,
+	FILE                 *f,
+	char                 *filename,
+	enum TokenizerError  *te,
+	enum TranslateStatus *ts);
 
 void
 Module_fprint(

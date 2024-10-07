@@ -31,8 +31,8 @@ because why would you toss meaningless statements into actual scripts anyway?
 
 - [x] rework towards separate tokenizing
 
-- [ ] add translation based on tokens
-todo: see compile warns and errs
+- [x] add translation based on tokens
+
 
 
 

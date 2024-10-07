@@ -19,6 +19,8 @@ main(
 	char *filepath = NULL;
 	FILE *file;
 	char *tmp;
+	enum TokenizerError  te;
+	enum TranslateStatus ts;
 
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-v") == 0) {
@@ -75,11 +77,28 @@ main(
 		}
 	}
 
-	Module_from_file(&mainM, file, filename);
-	fclose(file);
+	if (Module_from_file(&mainM, file, filename, &te, &ts)) {
+		fprintf(stderr, "Whoopsies\n");
+		goto clean;
+	}
+
+	if (te) {
+		fprintf(stderr, "Tokenizing failed, cuz you suck lol\n"); // jk
+		goto clean;
+	}
+
+	TranslateStatus_print(ts,
+	                      filename,
+	                      mainM.t[mainM.tc].row,
+	                      mainM.t[mainM.tc].col);
+	if (ts) {
+		goto clean;
+	}
 
 	Module_fprint(&mainM, stdout);
 
+clean:
+	fclose(file);
 	Module_free(&mainM);
 
 	return 0;
